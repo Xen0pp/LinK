@@ -1,0 +1,13 @@
+{
+  "name": "link-api",
+  "version": "1.0.0",
+  "description": "LinK Accessibility Platform API for Vercel",
+  "main": "index.js",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "express-rate-limit": "^7.1.5"
+  }
+} 

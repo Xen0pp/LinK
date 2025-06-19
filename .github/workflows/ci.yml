@@ -1,0 +1,208 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Frontend Tests
+  frontend-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Run ESLint with accessibility rules
+      run: |
+        cd frontend
+        npm run lint
+        
+    - name: Run frontend tests
+      run: |
+        cd frontend
+        npm test -- --coverage --watchAll=false
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+  # Backend Tests
+  backend-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+        
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+        
+    - name: Run TypeScript compilation
+      run: |
+        cd backend
+        npm run build
+        
+    - name: Run backend tests
+      run: |
+        cd backend
+        npm test
+
+  # Accessibility Testing
+  accessibility-test:
+    runs-on: ubuntu-latest
+    needs: [frontend-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Build application
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Install axe-core CLI
+      run: npm install -g @axe-core/cli
+      
+    - name: Start application
+      run: |
+        cd frontend
+        npm start &
+        sleep 30
+        
+    - name: Run accessibility audit
+      run: |
+        axe http://localhost:3000 --exit
+        
+    - name: Upload accessibility report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: accessibility-report
+        path: axe-results.json
+
+  # Security Audit
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Audit frontend dependencies
+      run: |
+        cd frontend
+        npm audit --audit-level moderate
+        
+    - name: Audit backend dependencies
+      run: |
+        cd backend
+        npm audit --audit-level moderate
+
+  # Code Quality
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install frontend dependencies
+      run: |
+        cd frontend
+        npm ci
+        
+    - name: Check code formatting (Prettier)
+      run: |
+        cd frontend
+        npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,md}"
+        
+    - name: Run ESLint with accessibility plugin
+      run: |
+        cd frontend
+        npx eslint src/ --ext .js,.jsx,.ts,.tsx --max-warnings 0
+
+  # Deploy (only on main branch)
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test, accessibility-test, security-audit, code-quality]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm ci
+        npm run build
+        
+    - name: Build backend
+      run: |
+        cd backend
+        npm ci
+        npm run build
+        
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your deployment commands here
+        
+    - name: Notify deployment
+      run: |
+        echo "✅ Accessibility Hub deployed successfully!"
+        echo "🌍 Frontend: https://accessibility-hub-staging.vercel.app"
+        echo "🔧 Backend: https://api-accessibility-hub-staging.herokuapp.com" 

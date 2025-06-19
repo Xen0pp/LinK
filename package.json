@@ -1,0 +1,42 @@
+{
+  "name": "link-accessibility-platform",
+  "version": "1.0.0",
+  "description": "LinK Accessibility Platform - A unified hub for assistive AI tools",
+  "private": true,
+  "scripts": {
+    "setup": "chmod +x setup-project.sh && ./setup-project.sh",
+    "start": "chmod +x start-unified-server.sh && ./start-unified-server.sh",
+    "dev": "npm run start",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install --legacy-peer-deps",
+    "clean": "rm -rf backend/dist frontend/build logs/*.log",
+    "stop": "pkill -f 'node dist/app.js' || true",
+    "restart": "npm run stop && npm run start",
+    "logs": "tail -f logs/server.log",
+    "test:connectivity": "./test-connectivity.sh",
+    "help": "echo '\n🚀 LinK Accessibility Platform Commands:\n  npm run setup     - Initialize the entire project\n  npm start         - Start the unified server\n  npm run build     - Build both frontend and backend\n  npm run clean     - Clean all build files\n  npm run stop      - Stop the server\n  npm run restart   - Restart the server\n  npm run logs      - View server logs\n  npm test          - Test connectivity\n'"
+  },
+  "keywords": [
+    "accessibility",
+    "ai",
+    "assistive-technology",
+    "react",
+    "nodejs",
+    "wcag",
+    "inclusive-design"
+  ],
+  "author": "LinK Accessibility Platform Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+} 

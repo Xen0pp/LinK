@@ -1,0 +1,136 @@
+# Accessibility Hub for Assistive AI Tools
+
+## 🧠 Objective
+
+Build a web-based "Accessibility Hub" that serves as a centralized directory and interactive platform for open-source assistive AI tools. The goal is to help people with disabilities discover and use AI-powered aids (e.g. speech-to-text, image captioning, text simplification, etc.) in one accessible interface. By leveraging open-source libraries and models, the app aims to promote inclusive design: WCAG and WAI-ARIA principles guide the UI so that it's fully keyboard-navigable, high-contrast, and screen-reader-friendly. This hub will also integrate an AI chatbot assistant to answer accessibility questions. Given that 16% of the world's population (over 1 billion people) have disabilities, providing these tools in an accessible, user-friendly way ensures compliance with standards and broad impact for an inclusive digital experience.
+
+## 📌 Core Features
+
+* **Tool Directory:** A searchable, categorized catalog of assistive AI tools (e.g. speech-to-text, text-to-speech, image captioning, language simplification, sign language recognition). Each entry has a description, usage instructions, and resource links.
+* **Search & Filter:** Users can search tools by keywords and filter by category (e.g. Visual, Hearing, Motor, Cognitive assistive tools). This makes it easy to find relevant tools for specific disabilities or tasks.
+* **Interactive Demos:** In-app demos allowing users to try tools in real time. For example, upload an image to get AI-generated alt text (using vision-language models), or paste text to get a simplified summary. All media inputs and outputs include proper alt text and ARIA labels.
+* **AI Assistant Chatbot:** An integrated LLM-based assistant that answers accessibility queries in natural language. Users can ask "Which open-source captioning tools help deaf viewers?" or "How do I improve color contrast?" and get guided answers (the chatbot leverages open models like GPT-J/GPT-Neo from Hugging Face). The assistant cites sources or documentation as needed.
+* **Accessibility Settings:** Built-in UI controls for personal preferences, e.g. toggling high-contrast mode, increasing font sizes, and enabling screen-reader-compatible navigation. These ensure even the hub itself follows WCAG guidelines (e.g. WCAG recommends full keyboard support and proper contrast).
+* **User Contributions:** A form for submitting new tools or giving feedback. Users and developers can contribute entries for other open-source assistive tools. Submissions are reviewed by maintainers to keep the directory growing.
+* **AI-Powered A11y Checks:** Automated audits (using tools like axe-core) run on pages to catch common issues (missing alt text, ARIA errors). The app can highlight accessibility warnings and suggest fixes. For instance, AI checks can catch low-contrast text or missing headings.
+* **Localization & Alt Media:** Multi-language support for UI text (to help non-English users) and optional audio descriptions or transcripts for content (aligning with guidelines that all content be perceivable).
+
+## 👨‍💻 Tech Stack
+
+* **Frontend:** React (TypeScript) for UI, using a component library with strong accessibility (e.g. Material-UI or Chakra UI) and tailwindcss for styling. Ensures semantic HTML elements (`<header>`, `<main>`, `<button>`, etc.) are used throughout; "semantic HTML is the foundation of accessibility". ARIA roles/attributes are added for complex widgets.
+* **Backend:** Node.js with Express (or Python Flask/Django) providing a RESTful API. Serves the tool directory data and routes requests to AI services. Uses JSON or GraphQL to communicate.
+* **Database:** PostgreSQL or MongoDB (open-source) to store tool metadata (names, descriptions, tags) and user contributions.
+* **AI/ML Tools:**
+
+  * **LLMs:** Hugging Face Transformers library running open-source models (e.g. GPT-J, GPT-NeoX) for the chatbot and text tasks. Hugging Face explicitly promotes an "open source stack" for ML development. These models provide natural-language answers and text summarization/simplification.
+  * **Image Captioning:** A vision+language model (e.g. BLIP or similar) to auto-generate alt text for uploaded images (helping visually impaired users). This parallels AI capabilities like ChatGPT's image descriptions.
+  * **Speech Recognition:** OpenAI's Whisper ASR model (fully open-source) for transcribing audio or video to text, aiding deaf/hard-of-hearing users.
+  * **Text-to-Speech:** An open TTS system (e.g. Mozilla TTS) to read page content or tool output aloud for low-vision users.
+  * **OCR:** Tesseract OCR (open-source) for extracting text from uploaded images or screenshots.
+* **Utilities:**
+
+  * **Accessibility Testing:** axe-core (open-source accessibility engine) integrated into CI to automate WCAG rule checks.
+  * **Linting/Formatting:** ESLint with `eslint-plugin-jsx-a11y`, Prettier for clean code.
+  * **CI/CD:** GitHub Actions for linting, testing, and deploying. Includes an automated axe audit as a GitHub job.
+  * **DevOps:** Docker for containerizing the backend and model services. Nginx for static asset hosting.
+  * **Analytics (optional):** Privacy-safe usage analytics to track feature use (no personal data).
+
+## 🗂️ Simplified Project Structure
+
+```
+/frontend
+  /src
+    /components         # Reusable UI components (ToolCard, Navbar, etc.)
+    /pages              # Page-level components (Home, ToolList, ToolDetail, Chatbot, Settings)
+    /styles             # CSS/tailwind configs and theme
+    /utils              # Helper functions (API client, a11y utils)
+  package.json
+  tsconfig.json
+  public/              # Static assets (images, icons)
+  
+/backend
+  /src
+    /controllers       # Business logic for each endpoint (ToolController, ChatController)
+    /models            # DB models/schemas (Tool, User, Feedback)
+    /routes            # Express routes definitions (/tools, /chat, /user, etc.)
+    /services          # AI model invocation services (e.g. call Whisper, LLM prompts)
+    /utils             # Shared helpers (error handlers, logger)
+  app.js              # Express server setup
+  package.json
+  .env                # Environment variables (DB URL, model configs)
+
+/tests               # Unit and integration tests
+  /frontend
+  /backend
+
+/.github/workflows   # CI/CD pipeline configs (linters, tests, accessibility audits)
+/README.md
+```
+
+## ▶️ How It Works
+
+1. **Homepage:** The user visits the hub. A hero section explains the mission ("Find tools to help you"), and main categories are displayed (e.g. Visual, Auditory, Cognitive). A prominent search bar invites queries.
+2. **Search & Filter:** User types a keyword (e.g. "captioning") or selects filters (e.g. "Hearing"), and the app queries the backend for matching tools. Results appear as a grid/list of *Tool Cards*, each showing name, icon, short description, and category tags. (React state and useEffect fetch `/api/tools` with search params.)
+3. **Tool Details / Demo:** When a user clicks a tool, they see a detail page. This page includes a full description, screenshots, usage instructions, and an interactive demo if applicable. For example, for an image-captioning tool, there is an upload widget: user uploads a photo, the frontend calls the backend route `/api/generate-alt-text`, sending the image. The backend uses the vision model to produce an alt-text string, then returns it to display beneath the image. All UI elements have descriptive labels (ARIA) and the image's alt is set to the generated description.
+4. **Interactive AI Chat:** On the "Ask Assistant" page, the user can type questions or instructions (similar to a GPT chat). For instance, they ask "How do I add alt text in HTML?" The frontend sends the prompt to the backend, which runs it through the LLM API (with any relevant system prompt about accessibility best practices) and returns the answer text. The UI shows the chat history. The assistant provides help or directs the user to tools (e.g. "For automated alt text, try our Image Captioning tool").
+5. **Accessibility Preferences:** A toggle button opens settings (or a persistent toolbar) for accessibility preferences. The user can switch to high-contrast CSS (WCAG compliant colors), increase base font size, or turn on a screen-reader mode. These apply immediately, updating the site theme or enabling ARIA live regions as needed.
+6. **User Feedback/Contribute:** If the user has a suggestion or reports an issue ("This page's contrast is low"), they can submit feedback through a form. Submissions go to a backend endpoint (/api/feedback) and are stored for review. Developers or curators can periodically review contributions in the admin interface.
+7. **Continual Flow:** The user can move between tools, trying multiple demos. Every action is keyboard-accessible (TAB order, skip links, etc.). For example, after using the transcription tool, they may use the translator tool. Throughout, models process inputs and back-end services return results. The UI always follows focus management rules so assistive tech announces changes.
+
+## ✅ Best Practices
+
+* **Semantic HTML & ARIA:** Use semantic tags (`<header>`, `<section>`, `<article>`, `<main>`, `<nav>`, `<button>`, etc.) as the baseline of the markup. Semantic HTML "is the foundation of accessibility" and often yields accessible behavior by default. Only add ARIA attributes for elements that require roles or states (e.g. `<nav aria-label="Main menu">`, custom widgets with `role="button"` and `aria-pressed`). As MDN notes, semantic HTML has "far better support" for assistive technologies.
+* **Keyboard Navigation:** Ensure full functionality without a mouse. All interactive components should be reachable and operable via keyboard (tab, enter, space, arrow keys). WCAG guidelines emphasize this (the tab key must navigate all content). For example, use `tabindex` only when necessary and manage focus for modal dialogs or dynamic content.
+* **Color & Contrast:** Follow WCAG contrast ratios (at least 4.5:1 for normal text). The default theme should be high-contrast; provide a theme switcher for even higher contrast if needed. Avoid relying solely on color to convey information. Use ARIA or textual cues for any state changes (like errors) so color-blind users are accommodated.
+* **Text Alternatives:** All meaningful images and media should have alt text or captions. Leverage the AI image captioning feature to auto-generate alt text when possible, but allow manual edits. For videos/audio, provide transcripts or captions. The system could auto-transcribe content with Whisper. This ensures non-visual users get equivalent information.
+* **Responsive & Mobile-Friendly:** Use a responsive layout so the hub works on phones/tablets. Ensure touchscreen targets are large enough (per mobile accessibility best practices). All features (like chat or demos) should work across devices.
+* **Error Handling & Feedback:** Validate user inputs (e.g. file types) and handle errors gracefully. If an AI service fails (timeout or no answer), catch the error and show a user-friendly message ("Sorry, the assistant is unavailable"); log the error for debugging. Maintain accessibility in error messages as well.
+* **Automated Testing:** Integrate accessibility tests (axe-core) into the CI pipeline. Write unit/integration tests for critical flows (e.g. submitting a tool query, using the chat). Use ESLint's a11y plugin to catch issues.
+* **Privacy & Ethics:** Since we may process user inputs (like images or transcripts), be transparent. Don't store sensitive data longer than needed; use anonymized tokens for AI services. Make it clear that the AI assistant is for guidance only and may not always be correct. Choose open-source models and libraries to avoid licensing constraints.
+* **Compliance & Inclusivity:** Aim for WCAG Level AA as a minimum compliance target. Follow legal guidelines (like ADA/Web Content Accessibility Guidelines) and consider diverse user needs (cognitive load, language simplicity). Allow the community to test and provide feedback on accessibility.
+
+## 💬 Prompt Example
+
+**Example User Prompt:**
+"Explain how closed captioning helps deaf users in live video calls."
+
+**Example AI Response:**
+"Closed captioning turns spoken words in the video into real-time text displayed on-screen. For deaf or hard-of-hearing users, captions ensure they don't miss any audio content. In a live video call, captions can be auto-generated by speech-to-text models (like Whisper) so participants see subtitles as people speak. This makes the conversation accessible because it provides the same information through text that others hear through sound. For example, Zoom and Teams offer live captions to include deaf users. By enabling captions, your video call app can comply with accessibility best practices and allow everyone to follow along in real time."
+
+*(This prompt–response style matches how our chatbot assistant will communicate: a clear question and a helpful, concise answer.)*
+
+## 🧠 Project Guide
+
+* **Setup:** "Create a React front-end project with TypeScript, configuring ESLint (with jsx-a11y) and Prettier. Initialize a new Node/Express backend (or Python Flask app) with CORS enabled. Define an empty PostgreSQL database. Ensure all initial HTML templates use semantic tags (`<main>`, `<section>`, etc.) and install `axe-core` for testing."
+
+* **Setup:** "Set up environment variables and `.env` files for database connection and any API keys. Write a basic Express `/health` route and a React homepage that fetches it to confirm connectivity."
+
+* **Core:** "Implement `/api/tools` endpoint in `toolRoutes.js` that reads from a `tools` table in the database. Handle search/filter query parameters (e.g. `?q=captioning`). In React, create a `ToolList` component that calls this endpoint and renders `ToolCard` components for each tool."
+
+* **Core:** "Build the `ToolCard` component in `ToolCard.jsx`. It should display the tool's name, icon, and short description. Ensure the card has an accessible role (e.g. a focusable `<button>` or `<a>` with `aria-label`) and can be activated by keyboard. Handle click to navigate to a detailed view."
+
+* **Core:** "Implement the `ToolDetail` page (`ToolDetail.jsx`), which fetches full data for a selected tool by ID. If the tool supports a demo (e.g. image captioning), include an upload form. In `ToolDetail`, handle file input (`<input type="file" accept="image/*">`) and send the file to backend. Show a loading state and then display the AI-generated result with proper alt text and `aria-live` announcements."
+
+* **Core:** "Develop the chatbot interface in `Chatbot.jsx` and backend route `/api/chat`. On submit, the frontend sends the user question; the backend prompts the LLM (using a Hugging Face model) to generate an answer, then returns it. Ensure the chat UI outputs the AI answer into a `<div role="alert">` or similar so screen readers announce it."
+
+* **Integration:** "Connect the React UI to the backend API. For example, use Axios or Fetch in `ToolList` to call `GET /api/tools`. Do the same for posting chat queries and tool demos to their endpoints. Handle CORS or proxy issues."
+
+* **Integration:** "Wire up the image captioning feature: on file upload in the front-end, POST to `/api/alt-text`. In the Express controller for `/alt-text`, call the vision model (e.g. using Python via a microservice or Node binding). Return the generated caption and display it in the `ToolDetail` component."
+
+* **Integration:** "Connect Whisper ASR: in a new backend route `/api/transcribe`, accept audio, run Whisper to get text, and return it. In the front-end, create a `SpeechToText.jsx` component where a user can upload an audio clip or record, then send and display the transcription."
+
+* **Refinement:** "Enhance the `ToolList` by adding keyboard-accessible pagination or infinite scroll. Ensure each new page of results loads without breaking keyboard focus."
+
+* **Refinement:** "Add high-contrast and large-text CSS options. For example, include a button in the header to toggle a `high-contrast` class on `<body>` that switches colors and font sizes. Verify that this passes contrast checks."
+
+* **Refinement:** "Improve error handling in the chat feature: if the LLM returns an error or null, display a friendly message ('Sorry, I cannot answer that right now.') and log the original prompt. Do not expose raw errors to the user."
+
+* **Refinement:** "Implement unit tests for critical functions: e.g. a Jest test for the `generateAltText(image)` service to ensure it returns a non-empty string for a sample image. Write integration tests that mount React components and simulate user interactions (like searching or uploading a file)."
+
+* **Testing:** "Use axe-core to write a test that scans the homepage component. The test should fail if any elements have missing `alt` attributes or improper contrast. Fix issues until the test passes."
+
+* **Error Reporting:** "In any controller (e.g. `chatController.js`), wrap the AI call in try/catch. On error, log the stack trace server-side, and send a JSON error message with a generic user-friendly message to the front-end. The front-end should display this message in a banner or toast."
+
+* **Diagram:** "Ask for a system architecture diagram: e.g. 'Draw an architecture diagram showing the React frontend, Node backend, database, and how AI model services (LLM, Whisper, Vision) interact.'"
+
+* **Diagram:** "Ask for a sequence diagram of the user search flow: 'Illustrate the sequence from user typing in the search bar, frontend sending request to `/api/tools`, backend querying DB, and returning results.'"
