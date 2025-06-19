@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1748289331247-nxeu0mshn",
+    "type": "usage_logs",
+    "data": {
+      "feature": "text_to_speech",
+      "metadata": {},
+      "timestamp": "2025-05-26T19:55:31.247Z",
+      "userAgent": "unknown"
+    },
+    "createdAt": "2025-05-26T19:55:31.247Z",
+    "updatedAt": "2025-05-26T19:55:31.247Z"
+  }
+]

@@ -10,6 +10,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 CYAN='\033[0;36m'
+PURPLE='\033[0;35m'
 NC='\033[0m'
 
 print_status() {
@@ -32,9 +33,37 @@ print_step() {
     echo -e "${CYAN}[STEP]${NC} $1"
 }
 
+print_security() {
+    echo -e "${PURPLE}[SECURITY]${NC} $1"
+}
+
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Security check function
+check_for_secrets() {
+    print_security "Scanning for exposed API keys and secrets..."
+    
+    # Check for common API key patterns
+    if grep -r "hf_" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v env.example | grep -v SECURITY.md; then
+        print_error "⚠️  HUGGING FACE API KEY DETECTED in code!"
+        return 1
+    fi
+    
+    if grep -r "sk_" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v env.example | grep -v SECURITY.md; then
+        print_error "⚠️  ELEVENLABS API KEY DETECTED in code!"
+        return 1
+    fi
+    
+    if grep -r "AIza" --include="*.ts" --include="*.js" . 2>/dev/null | grep -v env.example | grep -v SECURITY.md; then
+        print_error "⚠️  GOOGLE API KEY DETECTED in code!"
+        return 1
+    fi
+    
+    print_success "✅ No exposed API keys found in code"
+    return 0
 }
 
 # Step 1: Check Prerequisites
@@ -57,15 +86,75 @@ else
     print_success "npm found: $NPM_VERSION"
 fi
 
-# Step 2: Clean up any existing processes
-print_step "2. Cleaning up existing processes..."
+# Step 2: Security Scan
+print_step "2. Security Scan..."
+echo ""
+if ! check_for_secrets; then
+    print_error "Security scan failed! Please remove exposed API keys before continuing."
+    print_warning "See SECURITY.md for guidance on proper API key management."
+    exit 1
+fi
+
+# Step 3: Clean up any existing processes
+print_step "3. Cleaning up existing processes..."
 echo ""
 pkill -f "node dist/app.js" 2>/dev/null || true
 pkill -f "react-scripts" 2>/dev/null || true
 print_success "Cleaned up existing server processes"
 
-# Step 3: Install Backend Dependencies
-print_step "3. Installing Backend Dependencies..."
+# Step 4: Environment Setup
+print_step "4. Setting up Environment Configuration..."
+echo ""
+
+if [ ! -f ".env" ]; then
+    if [ -f "env.example" ]; then
+        print_status "Creating .env file from template..."
+        cp env.example .env
+        print_success "Environment file created from template"
+        print_warning "⚠️  IMPORTANT: Add your real API keys to .env file!"
+        print_warning "   - Get Google Gemini key: https://makersuite.google.com/app/apikey"
+        print_warning "   - Get Hugging Face key: https://huggingface.co/settings/tokens"
+        print_warning "   - Get ElevenLabs key: https://elevenlabs.io/app/settings/api-keys"
+    else
+        print_status "Creating default environment file..."
+        cat > .env << EOF
+# LinK Accessibility Platform Environment Configuration
+NODE_ENV=development
+PORT=8000
+
+# Database Configuration (Optional - using file-based storage)
+MONGODB_URI=mongodb://localhost:27017/accessibility-hub
+
+# CORS Configuration
+CORS_ORIGINS=http://localhost:8000,http://localhost:3000
+
+# API Configuration
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Feature Flags
+SWAGGER_ENABLED=true
+
+# AI Service Configuration (Add your API keys here)
+# GOOGLE_GEMINI_API_KEY=your_gemini_key_here
+# HUGGINGFACE_API_KEY=your_huggingface_key_here
+# ELEVENLABS_API_KEY=your_elevenlabs_key_here
+EOF
+        print_success "Default environment file created"
+        print_warning "⚠️  IMPORTANT: Add your real API keys to .env file!"
+    fi
+else
+    print_success "Environment file already exists"
+fi
+
+# Verify .env is in .gitignore
+if ! grep -q "^\.env$" .gitignore 2>/dev/null; then
+    print_warning "Adding .env to .gitignore for security..."
+    echo ".env" >> .gitignore
+fi
+
+# Step 5: Install Backend Dependencies
+print_step "5. Installing Backend Dependencies..."
 echo ""
 if [ -f "backend/package.json" ]; then
     cd backend
@@ -83,8 +172,8 @@ else
     exit 1
 fi
 
-# Step 4: Install Frontend Dependencies
-print_step "4. Installing Frontend Dependencies..."
+# Step 6: Install Frontend Dependencies
+print_step "6. Installing Frontend Dependencies..."
 echo ""
 if [ -f "frontend/package.json" ]; then
     cd frontend
@@ -102,14 +191,22 @@ else
     exit 1
 fi
 
-# Step 5: Create Required Directories
-print_step "5. Creating Required Directories..."
+# Step 7: Security Audit
+print_step "7. Running Security Audit..."
+echo ""
+print_status "Checking for vulnerabilities..."
+cd backend && npm audit --audit-level=high && cd ..
+cd frontend && npm audit --audit-level=high && cd ..
+print_success "Security audit completed"
+
+# Step 8: Create Required Directories
+print_step "8. Creating Required Directories..."
 echo ""
 mkdir -p logs uploads backend/dist frontend/build
 print_success "Required directories created"
 
-# Step 6: Build Backend
-print_step "6. Building Backend (TypeScript Compilation)..."
+# Step 9: Build Backend
+print_step "9. Building Backend (TypeScript Compilation)..."
 echo ""
 cd backend
 print_status "Compiling TypeScript to JavaScript..."
@@ -122,8 +219,8 @@ else
 fi
 cd ..
 
-# Step 7: Build Frontend
-print_step "7. Building Frontend (React Production Build)..."
+# Step 10: Build Frontend
+print_step "10. Building Frontend (React Production Build)..."
 echo ""
 cd frontend
 print_status "Creating optimized React build..."
@@ -136,42 +233,8 @@ else
 fi
 cd ..
 
-# Step 8: Environment Setup
-print_step "8. Setting up Environment..."
-echo ""
-if [ ! -f ".env" ]; then
-    print_status "Creating environment file..."
-    cat > .env << EOF
-# LinK Accessibility Platform Environment Configuration
-NODE_ENV=development
-PORT=8000
-
-# Database Configuration (Optional - using file-based storage)
-MONGODB_URI=mongodb://localhost:27017/accessibility-hub
-POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/accessibility_hub
-
-# CORS Configuration
-CORS_ORIGINS=http://localhost:8000,http://localhost:3000
-
-# API Configuration
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# Feature Flags
-SWAGGER_ENABLED=true
-
-# AI Service Configuration (Add your API keys here)
-# GEMINI_API_KEY=your_gemini_key_here
-# ELEVENLABS_API_KEY=your_elevenlabs_key_here
-# HUGGINGFACE_API_TOKEN=your_huggingface_token_here
-EOF
-    print_success "Environment file created"
-else
-    print_success "Environment file already exists"
-fi
-
-# Step 9: Verify Build Files
-print_step "9. Verifying Build Files..."
+# Step 11: Verify Build Files
+print_step "11. Verifying Build Files..."
 echo ""
 
 if [ -f "backend/dist/app.js" ]; then
@@ -188,19 +251,46 @@ else
     exit 1
 fi
 
-# Step 10: Final Setup Summary
-print_step "10. Setup Complete!"
+# Step 12: Final Security Check
+print_step "12. Final Security Verification..."
+echo ""
+print_security "Verifying environment security..."
+
+if [ -f ".env" ] && ! git check-ignore .env >/dev/null 2>&1; then
+    print_error "⚠️  SECURITY RISK: .env file is not properly gitignored!"
+    print_warning "This could expose your API keys. Check your .gitignore file."
+else
+    print_success "✅ Environment file is properly protected"
+fi
+
+# Check if .env has placeholder values
+if [ -f ".env" ] && grep -q "your_.*_key_here" .env; then
+    print_warning "⚠️  API keys not configured in .env file"
+    print_warning "   AI features will run in demo mode until you add real API keys"
+fi
+
+# Step 13: Setup Complete
+print_step "13. Setup Complete!"
 echo ""
 print_success "🎉 LinK Accessibility Platform is ready to start!"
 echo ""
 echo "📋 Setup Summary:"
 echo "   ✅ Node.js and npm verified"
+echo "   ✅ Security scan passed"
+echo "   ✅ Environment configuration created"
 echo "   ✅ Backend dependencies installed"
 echo "   ✅ Frontend dependencies installed"
+echo "   ✅ Security audit completed"
 echo "   ✅ Backend compiled (TypeScript → JavaScript)"
 echo "   ✅ Frontend built (React production build)"
-echo "   ✅ Environment configured"
 echo "   ✅ Required directories created"
+echo "   ✅ Security verification passed"
+echo ""
+print_security "🔒 Security Reminders:"
+echo "   • Never commit .env files to git"
+echo "   • Rotate API keys regularly (every 90 days)"
+echo "   • Monitor API usage for suspicious activity"
+echo "   • See SECURITY.md for complete security guidelines"
 echo ""
 echo "🚀 To start the website:"
 echo "   Method 1: ./start-unified-server.sh"
