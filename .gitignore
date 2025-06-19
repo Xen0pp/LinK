@@ -1,21 +1,53 @@
-# ======================================
-# SECURITY-CRITICAL FILES (NEVER COMMIT)
-# ======================================
+# ===============================================================================
+# LinK ACCESSIBILITY PLATFORM - COMPREHENSIVE SECURITY GITIGNORE
+# ===============================================================================
+# This file ensures maximum security by excluding ALL sensitive files
+# Last updated: 2025 - Production-ready security configuration
+# ===============================================================================
+
+# ===============================================================================
+# CRITICAL SECURITY FILES (HIGHEST PRIORITY - NEVER COMMIT)
+# ===============================================================================
 
 # Environment files containing API keys and secrets
 .env
 .env.*
-!.env.example
-!env.example
+.env.local
+.env.production
+.env.development
+.env.test
+.env.staging
+.env.backup
+.env.sample
 *.env
 env.local
 env.production
 env.development
 env.test
 
-# API Keys and Secrets
+# API Keys and Authentication
 **/secrets/**
 **/keys/**
+**/config/secrets/**
+**/config/keys/**
+api-keys.json
+secrets.json
+credentials.json
+auth-config.json
+service-account.json
+private-key.json
+
+# Authentication tokens and credentials
+token.txt
+access_token
+refresh_token
+auth_token
+bearer_token
+*.token
+*.credential
+*.secret
+
+# Certificate and key files
 *.key
 *.pem
 *.p12
@@ -25,110 +57,107 @@ env.test
 *.csr
 *.jks
 *.keystore
-config/secrets.json
-secrets.json
-api-keys.json
-credentials.json
+ssl/
+certs/
+certificates/
 
-# Authentication tokens
-token.txt
-access_token
-refresh_token
-auth_token
-*.token
+# SSH and GPG keys
+id_rsa
+id_ed25519
+id_dsa
+*.pub
+ssh_host_*
+*.gpg
+*.asc
+keyring/
+.ssh/
 
 # Database credentials and connection strings
 database.json
 db-config.json
 connection-string.txt
+database-url.txt
 
 # Cloud service credentials
 gcp-service-account.json
 aws-credentials.json
 azure-credentials.json
 firebase-admin-sdk.json
+google-service-account.json
+aws-config.json
+azure-config.json
 
-# ======================================
-# DEPENDENCIES & BUILD FILES
-# ======================================
+# Security scan results and reports
+security-scan-results.json
+vulnerability-report.json
+audit-log.txt
+security-audit.log
+penetration-test-results.txt
 
-# Dependencies
+# ===============================================================================
+# DEVELOPMENT DEPENDENCIES & BUILD FILES
+# ===============================================================================
+
+# Node.js dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 package-lock.json
 yarn.lock
-.pnpm-debug.log*
+.npm/
+.yarn/
 
-# Production builds
+# Build outputs and distributions
 build/
 dist/
-*.tgz
-*.tar.gz
 out/
 .next/
 .nuxt/
+*.tgz
+*.tar.gz
 
-# ======================================
-# LOGS & RUNTIME DATA
-# ======================================
-
-# Logs
-logs/
-*.log
-lerna-debug.log*
-combined.log
-error.log
-access.log
-debug.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# ======================================
-# DEVELOPMENT & TESTING
-# ======================================
-
-# Coverage reports
-coverage/
-*.lcov
-.nyc_output
-.jest/
-jest_output/
-test-results/
-playwright-report/
-cypress/videos/
-cypress/screenshots/
-
-# IDE and editor files
-.vscode/
-!.vscode/settings.json.example
-.idea/
-*.swp
-*.swo
-*~
-.sublime-project
-.sublime-workspace
-
-# Cache directories
+# Cache directories and temporary files
 .cache/
-.npm/
-.yarn/
+.parcel-cache
 .eslintcache
 .stylelintcache
-.parcel-cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+.nyc_output/
+.jest/
 
-# ======================================
-# USER DATA & UPLOADS
-# ======================================
+# ===============================================================================
+# RUNTIME DATA & LOGS
+# ===============================================================================
+
+# Application logs
+logs/
+*.log
+combined.log
+error.log
+access.log
+debug.log
+app.log
+server.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime and process data
+pids/
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
+
+# ===============================================================================
+# USER DATA & UPLOADS (PRIVACY PROTECTION)
+# ===============================================================================
 
 # User uploaded content
 uploads/
@@ -136,34 +165,54 @@ user-uploads/
 public/uploads/
 static/uploads/
 data/uploads/
+media/uploads/
 
-# Processed files
+# Processed user data
 processed_signs/
 original_asl_images/
+user-data/
 data/processed/
 temp-files/
-tmp/
+temporary-uploads/
 
-# ======================================
-# DATABASE FILES
-# ======================================
+# User sessions and temporary files
+sessions/
+tmp/
+temp/
+.temporary/
+*.tmp
+*.temp
+
+# ===============================================================================
+# DATABASE & STORAGE FILES
+# ===============================================================================
 
 # Local database files
 *.db
 *.sqlite
 *.sqlite3
 *.db-journal
+*.db-shm
+*.db-wal
 data/db/
 database/
 dump.rdb
 
-# ======================================
-# AI MODEL FILES (Large files)
-# ======================================
+# Database backups
+*.sql
+*.dump
+*.backup
+db-backup/
+database-backup/
+
+# ===============================================================================
+# AI MODEL FILES & TRAINING DATA (LARGE FILES)
+# ===============================================================================
 
 # Machine learning models
 *.model
 *.pkl
+*.pickle
 *.joblib
 *.h5
 *.weights
@@ -171,17 +220,26 @@ dump.rdb
 *.onnx
 *.pt
 *.pth
+*.safetensors
 models/
 checkpoints/
+model-cache/
 
-# Training data
+# Training data and datasets
 *.traineddata
 training-data/
 datasets/
+training-sets/
+data/training/
 
-# ======================================
-# MEDIA FILES (Large files)
-# ======================================
+# AI service cache
+ai-cache/
+model-downloads/
+transformers_cache/
+
+# ===============================================================================
+# MEDIA FILES (PREVENT LARGE FILE COMMITS)
+# ===============================================================================
 
 # Video files
 *.mp4
@@ -191,6 +249,8 @@ datasets/
 *.wmv
 *.flv
 *.webm
+*.m4v
+*.3gp
 
 # Audio files
 *.mp3
@@ -199,15 +259,19 @@ datasets/
 *.aac
 *.ogg
 *.m4a
+*.wma
 
 # Large image files
 *.raw
 *.tiff
+*.tif
 *.psd
+*.ai
+*.eps
 
-# ======================================
-# BACKUP & TEMPORARY FILES
-# ======================================
+# ===============================================================================
+# BACKUP & ARCHIVE FILES
+# ===============================================================================
 
 # Backup files
 *.bak
@@ -215,14 +279,10 @@ datasets/
 *.old
 *.orig
 *~
+*.swp
+*.swo
 
-# Temporary files
-*.tmp
-*.temp
-.temporary/
-temp/
-
-# Compressed files
+# Archive and compressed files
 *.zip
 *.rar
 *.7z
@@ -230,10 +290,12 @@ temp/
 *.gz
 *.bz2
 *.xz
+*.tar.gz
+*.tar.bz2
 
-# ======================================
+# ===============================================================================
 # OPERATING SYSTEM FILES
-# ======================================
+# ===============================================================================
 
 # macOS
 .DS_Store
@@ -273,9 +335,65 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# ======================================
+# ===============================================================================
+# DEVELOPMENT TOOLS & IDEs
+# ===============================================================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json.example
+!.vscode/tasks.json.example
+!.vscode/launch.json.example
+!.vscode/extensions.json.example
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===============================================================================
+# TESTING & QUALITY ASSURANCE
+# ===============================================================================
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Test results and reports
+test-results/
+jest_output/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# ===============================================================================
 # CLOUD & DEPLOYMENT
-# ======================================
+# ===============================================================================
 
 # Firebase
 .firebase/
@@ -285,14 +403,27 @@ firebase-service-account.json
 
 # Vercel
 .vercel
+.vercel.json
+
+# Netlify
+.netlify/
 
 # AWS
 .aws/
 aws-config.json
 
+# Google Cloud
+.gcloud/
+gcp-config.json
+
 # Docker
 .dockerignore
 docker-compose.override.yml
+.docker/
+
+# Kubernetes
+*.kubeconfig
+k8s-secrets.yml
 
 # Terraform
 *.tfstate
@@ -300,44 +431,32 @@ docker-compose.override.yml
 .terraform/
 .terraform.lock.hcl
 
-# ======================================
-# ADDITIONAL SECURITY FILES
-# ======================================
+# ===============================================================================
+# MONITORING & ANALYTICS
+# ===============================================================================
 
-# SSL/TLS certificates
-ssl/
-certs/
-*.crt
-*.key
-*.pem
-*.p12
-*.pfx
+# Error tracking
+.sentry/
+sentry.properties
 
-# SSH keys
-id_rsa
-id_ed25519
-*.pub
-ssh_host_*
+# Analytics
+.analytics/
+analytics-config.json
 
-# GPG keys
-*.gpg
-*.asc
-keyring/
+# Performance monitoring
+.performance/
+lighthouse-reports/
 
-# Security scan results
-security-scan-results.json
-vulnerability-report.json
-audit-log.txt
+# ===============================================================================
+# PROJECT-SPECIFIC EXCLUSIONS
+# ===============================================================================
 
-# ======================================
-# PROJECT SPECIFIC EXCLUSIONS
-# ======================================
-
-# React production builds
+# React build outputs
 frontend/build/
 frontend/dist/
+frontend/.next/
 
-# Backend compiled files  
+# Backend compiled files
 backend/dist/
 backend/build/
 
@@ -358,7 +477,39 @@ public/
 # Storybook
 .out/
 .storybook-out/
+storybook-static/
 
-# ======================================
-# END OF GITIGNORE
-# ====================================== 
+# ===============================================================================
+# CUSTOM APPLICATION FILES
+# ===============================================================================
+
+# LinK Platform specific
+accessibility-reports/
+user-feedback/
+usage-analytics/
+performance-logs/
+
+# Custom cache directories
+.link-cache/
+.accessibility-cache/
+
+# Generated documentation
+docs/generated/
+api-docs/generated/
+
+# ===============================================================================
+# OPTIONAL EXCLUSIONS (Uncomment if needed)
+# ===============================================================================
+
+# Lock files (uncomment if you want to exclude them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# License files (uncomment if you have custom licenses to hide)
+# LICENSE.private
+# EULA.txt
+
+# ===============================================================================
+# END OF GITIGNORE - TOTAL SECURITY PROTECTION ENABLED
+# =============================================================================== 
