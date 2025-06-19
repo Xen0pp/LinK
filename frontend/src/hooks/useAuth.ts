@@ -56,6 +56,12 @@ export const useAuth = () => {
 
   // Listen to auth state changes
   useEffect(() => {
+    if (!auth) {
+      console.warn('Firebase auth not initialized');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('🔥 Firebase Auth State Changed:', {
         hasUser: !!user,
@@ -86,6 +92,11 @@ export const useAuth = () => {
   }, [progress, badges, quizHistory, user, userProfile]);
 
   const loadUserProfile = async (uid: string) => {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return;
+    }
+
     try {
       console.log('📋 Starting to load user profile for:', uid);
       setError(null); // Clear any previous errors
@@ -148,6 +159,11 @@ export const useAuth = () => {
   };
 
   const createUserProfile = async (uid: string) => {
+    if (!db) {
+      console.warn('Firestore not initialized');
+      return;
+    }
+
     try {
       const newProfile: UserProfile = {
         uid,
@@ -195,7 +211,7 @@ export const useAuth = () => {
   };
 
   const syncUserData = async () => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile || !db) return;
 
     try {
       const earnedBadges = badges.filter(badge => badge.earned);
@@ -222,6 +238,10 @@ export const useAuth = () => {
   };
 
   const signInWithEmail = async (email: string, password: string) => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -246,19 +266,23 @@ export const useAuth = () => {
   };
 
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
       setLoading(true);
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Update user profile with display name
+      // Update the user's display name
       await updateProfile(result.user, { displayName });
       
       toast.success('Account created successfully!');
       return result;
     } catch (error: any) {
-      const errorMessage = error.code === 'auth/email-already-in-use'
-        ? 'An account with this email already exists'
+      const errorMessage = error.code === 'auth/email-already-in-use' 
+        ? 'Email is already registered'
         : error.code === 'auth/weak-password'
         ? 'Password should be at least 6 characters'
         : error.code === 'auth/invalid-email'
@@ -274,20 +298,21 @@ export const useAuth = () => {
   };
 
   const signInWithGoogle = async () => {
+    if (!auth) {
+      throw new Error('Firebase auth not initialized');
+    }
+
     try {
-      console.log('🔍 Starting Google sign-in...');
       setLoading(true);
       setError(null);
       const result = await signInWithPopup(auth, googleProvider);
-      console.log('✅ Google sign-in successful:', result.user.email);
       toast.success('Welcome!');
       return result;
     } catch (error: any) {
-      console.error('❌ Google sign-in error:', error);
-      const errorMessage = error.code === 'auth/popup-closed-by-user'
+      const errorMessage = error.code === 'auth/popup-closed-by-user' 
         ? 'Sign in was cancelled'
-        : error.code === 'auth/popup-blocked'
-        ? 'Popup was blocked. Please allow popups for this site'
+        : error.code === 'auth/account-exists-with-different-credential'
+        ? 'Account exists with different sign-in method'
         : 'Failed to sign in with Google';
       
       setError(errorMessage);
@@ -299,8 +324,14 @@ export const useAuth = () => {
   };
 
   const logout = async () => {
+    if (!auth) {
+      console.warn('Firebase auth not initialized');
+      return;
+    }
+
     try {
       await signOut(auth);
+      setUser(null);
       setUserProfile(null);
       toast.success('Signed out successfully');
     } catch (error) {
@@ -310,17 +341,14 @@ export const useAuth = () => {
   };
 
   const updateUserPreferences = async (preferences: Partial<UserProfile['preferences']>) => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile || !db) return;
 
     try {
       const updatedProfile = {
         ...userProfile,
-        preferences: {
-          ...userProfile.preferences,
-          ...preferences
-        }
+        preferences: { ...userProfile.preferences, ...preferences }
       };
-
+      
       await updateDoc(doc(db, 'users', user.uid), { preferences: updatedProfile.preferences });
       setUserProfile(updatedProfile);
       toast.success('Preferences updated');

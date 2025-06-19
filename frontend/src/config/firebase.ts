@@ -1,32 +1,57 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, EmailAuthProvider } from 'firebase/auth';
-import { getFirestore, enableNetwork, disableNetwork } from 'firebase/firestore';
-import { getAnalytics } from 'firebase/analytics';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider, EmailAuthProvider, Auth } from 'firebase/auth';
+import { getFirestore, enableNetwork, disableNetwork, Firestore } from 'firebase/firestore';
+import { getAnalytics, Analytics } from 'firebase/analytics';
 
-// Firebase configuration - using environment variables with fallbacks
+// Firebase configuration - using environment variables
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyBYvuFaI3v-KsRZVjozMkfAJZIdxT2TVGE",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "link-7ca48.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "link-7ca48",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "link-7ca48.firebasestorage.app",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "737228900009",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "1:737228900009:web:2064ef3468a81743ab0bb8",
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID || "G-EQ6987YSGR"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Validate required environment variables
+const requiredEnvVars = [
+  'REACT_APP_FIREBASE_API_KEY',
+  'REACT_APP_FIREBASE_AUTH_DOMAIN',
+  'REACT_APP_FIREBASE_PROJECT_ID',
+  'REACT_APP_FIREBASE_STORAGE_BUCKET',
+  'REACT_APP_FIREBASE_MESSAGING_SENDER_ID',
+  'REACT_APP_FIREBASE_APP_ID'
+];
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 
-// Analytics (optional)
-let analytics;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+if (missingEnvVars.length > 0) {
+  console.warn('Missing Firebase environment variables:', missingEnvVars);
 }
-export { analytics };
+
+// Initialize Firebase only if we have required config
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+let analytics: Analytics | undefined;
+
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    
+    // Analytics (optional)
+    if (typeof window !== 'undefined' && firebaseConfig.measurementId) {
+      analytics = getAnalytics(app);
+    }
+  } else {
+    console.warn('Firebase not initialized due to missing configuration');
+  }
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+}
 
 // Auth providers
 export const googleProvider = new GoogleAuthProvider();
@@ -38,7 +63,8 @@ googleProvider.setCustomParameters({
 });
 
 // Firestore settings for offline support
-export const enableFirestoreNetwork = () => enableNetwork(db);
-export const disableFirestoreNetwork = () => disableNetwork(db);
+export const enableFirestoreNetwork = () => db && enableNetwork(db);
+export const disableFirestoreNetwork = () => db && disableNetwork(db);
 
+export { app, auth, db, analytics };
 export default app; 
