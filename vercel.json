@@ -1,17 +1,24 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/build",
+  "builds": [
+    {
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "api/index.ts"
     }
   ],
   "env": {
-    "NODE_ENV": "production"
-  }
+    "NODE_ENV": "production",
+    "PORT": "8000",
+    "ELEVENLABS_API_KEY": "@elevenlabs-api-key",
+    "OPENAI_API_KEY": "@openai-api-key",
+    "HUGGINGFACE_API_KEY": "@huggingface-api-key"
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm run install:all"
 } 
