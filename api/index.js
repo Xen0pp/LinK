@@ -1,4 +1,5 @@
 // Minimal Vercel Serverless Function for LinK Accessibility Platform
+// Last updated: 2025-06-20 20:22 - HTML Interface Added
 module.exports = (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
