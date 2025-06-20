@@ -48,26 +48,25 @@ vercel --prod
 
 ### 3. Project Configuration
 
-The project is configured as a **Node.js application** (not static site) with:
-- **Entry Point**: `backend/src/app.ts`
-- **Build Command**: `npm run build` 
-- **Install Command**: `npm run install:all`
-- **Framework**: Node.js (Express + React SSR)
+The project is configured as a **Node.js serverless function** with:
+- **Entry Point**: `api/index.ts`
+- **Build Command**: `vercel-build` (automatically detected)
+- **Dependencies**: All backend dependencies in root package.json
+- **Framework**: Node.js (Express serverless function)
 
 ### 4. How It Works
 
 1. **Build Process**: 
-   - Installs dependencies for both frontend and backend
-   - Builds React frontend to static files
-   - Compiles TypeScript backend to JavaScript
-   - Backend serves both API routes and React static files
+   - Vercel installs dependencies from root package.json
+   - Runs `vercel-build` script which builds both frontend and backend
+   - Creates serverless function from `api/index.ts`
 
 2. **Routing**:
-   - `/api/*` → Backend API endpoints
-   - `/*` → React frontend (SPA routing)
+   - All requests `/*` → `api/index.ts` serverless function
+   - Express app handles API routes and frontend serving internally
 
 3. **Production Setup**:
-   - Single Node.js process handles everything
+   - Serverless function handles everything
    - React build files served statically by Express
    - No CORS issues (same origin)
 
@@ -75,7 +74,7 @@ The project is configured as a **Node.js application** (not static site) with:
 
 **Build Fails?**
 - Ensure all environment variables are set in Vercel dashboard
-- Check that `package.json` build scripts are correct
+- Check that dependencies are properly listed in root package.json
 - Verify Node.js version compatibility (≥18.0.0)
 
 **Runtime Errors?**
@@ -133,6 +132,13 @@ To update your ElevenLabs API key:
 3. Click "Edit" and update the value
 4. Click "Save"
 5. Redeploy (automatic or manual)
+
+### 10. Key Changes Made
+
+- ✅ **Dependencies**: Moved all backend dependencies to root package.json
+- ✅ **Build Script**: Added `vercel-build` for Vercel's build process
+- ✅ **Simplified Config**: Removed complex install commands
+- ✅ **Serverless Ready**: Optimized for Vercel's serverless platform
 
 ---
 

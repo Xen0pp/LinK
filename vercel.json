@@ -11,7 +11,5 @@
       "src": "/(.*)",
       "dest": "api/index.ts"
     }
-  ],
-  "buildCommand": "npm run build",
-  "installCommand": "npm run install:all"
+  ]
 } 
