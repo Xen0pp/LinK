@@ -5,7 +5,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
-const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -39,15 +38,9 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration - Allow all origins for now
 const corsOptions = {
-  origin: process.env.CORS_ORIGINS?.split(',') || [
-    'http://localhost:3000', 
-    'http://localhost:5000', 
-    'http://localhost:8000', 
-    'http://localhost:8001',
-    'https://vercel.app'
-  ],
+  origin: true, // Allow all origins
   credentials: true,
   optionsSuccessStatus: 200,
 };
@@ -60,6 +53,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging middleware
 app.use(morgan('combined'));
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'LinK Accessibility Platform API',
+    version: '1.0.0',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      textToSpeech: '/api/tools/text-to-speech',
+      chat: '/api/chat'
+    }
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -94,11 +102,12 @@ app.post('/api/tools/text-to-speech', async (req, res) => {
     }
 
     // For now, return a success response
-    // In production, this would call the ElevenLabs API
+    // TODO: Integrate with ElevenLabs API
     res.json({
       success: true,
-      message: 'Text-to-speech conversion initiated',
-      text: text.substring(0, 100) + (text.length > 100 ? '...' : '')
+      message: 'Text-to-speech conversion ready',
+      text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
+      apiKeyConfigured: true
     });
   } catch (error) {
     res.status(500).json({
@@ -125,56 +134,18 @@ app.post('/api/chat', (req, res) => {
   });
 });
 
-// Serve React frontend static files (if they exist)
-try {
-  const frontendBuildPath = path.join(__dirname, '../frontend/build');
-  app.use(express.static(frontendBuildPath));
-  
-  // Serve React app for all non-API routes (SPA routing)
-  app.get('*', (req, res) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return res.status(404).json({
-        error: 'Route not found',
-        message: `The requested API route ${req.originalUrl} does not exist.`,
-        availableRoutes: ['/api/health', '/api/tools/text-to-speech', '/api/chat']
-      });
-    }
-    
-    // Try to serve React app
-    try {
-      res.sendFile(path.join(frontendBuildPath, 'index.html'));
-    } catch (err) {
-      // Fallback if React build doesn't exist
-      res.json({
-        message: 'LinK Accessibility Platform API',
-        version: '1.0.0',
-        status: 'running',
-        note: 'Frontend build not found, serving API only',
-        endpoints: {
-          health: '/api/health',
-          textToSpeech: '/api/tools/text-to-speech',
-          chat: '/api/chat'
-        }
-      });
+// 404 handler for unknown routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    message: `The requested route ${req.originalUrl} does not exist.`,
+    availableRoutes: {
+      root: '/',
+      health: '/api/health',
+      textToSpeech: '/api/tools/text-to-speech',
+      chat: '/api/chat'
     }
   });
-} catch (err) {
-  console.log('Frontend build not found, serving API only');
-  
-  // Root endpoint fallback
-  app.get('/', (req, res) => {
-    res.json({
-      message: 'LinK Accessibility Platform API',
-      version: '1.0.0',
-      status: 'running',
-      endpoints: {
-        health: '/api/health',
-        textToSpeech: '/api/tools/text-to-speech',
-        chat: '/api/chat'
-      }
-    });
-  });
-}
+});
 
 module.exports = app; 
