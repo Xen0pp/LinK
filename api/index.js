@@ -1,5 +1,8 @@
-// Minimal Vercel Serverless Function for LinK Accessibility Platform
-// Last updated: 2025-06-20 20:22 - HTML Interface Added
+// LinK Accessibility Platform - Vercel Serverless Function
+// Serves the complete React app with all functionality + API endpoints
+const fs = require('fs');
+const path = require('path');
+
 module.exports = (req, res) => {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,221 +18,7 @@ module.exports = (req, res) => {
   try {
     const { url, method } = req;
     
-    // Root endpoint - serve HTML interface
-    if (url === '/' && method === 'GET') {
-      const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinK Accessibility Platform</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 600px;
-            width: 90%;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        .status {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            font-size: 1.1rem;
-        }
-        .status-value {
-            font-weight: bold;
-        }
-        .endpoints {
-            margin-top: 30px;
-        }
-        .endpoint {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .method {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-        .test-section {
-            margin-top: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 20px;
-        }
-        .test-button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        .test-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-        .result {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            text-align: left;
-            font-family: monospace;
-            font-size: 0.9rem;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .hidden { display: none; }
-        .success { color: #90EE90; }
-        .error { color: #FFB6C1; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🔗 LinK</h1>
-        <div class="subtitle">Accessibility Platform API</div>
-        
-        <div class="status">
-            <div class="status-item">
-                <span>Status:</span>
-                <span class="status-value success">✅ Online</span>
-            </div>
-            <div class="status-item">
-                <span>Version:</span>
-                <span class="status-value">1.0.0</span>
-            </div>
-            <div class="status-item">
-                <span>ElevenLabs API:</span>
-                <span class="status-value" id="elevenlabs-status">🔄 Checking...</span>
-            </div>
-        </div>
-        
-        <div class="endpoints">
-            <h3>Available Endpoints</h3>
-            <div class="endpoint">
-                <span>/api/health</span>
-                <span class="method">GET</span>
-            </div>
-            <div class="endpoint">
-                <span>/api/tools/text-to-speech</span>
-                <span class="method">POST</span>
-            </div>
-            <div class="endpoint">
-                <span>/api/chat</span>
-                <span class="method">POST</span>
-            </div>
-        </div>
-        
-        <div class="test-section">
-            <h3>Test API</h3>
-            <button class="test-button" onclick="testHealth()">Test Health Check</button>
-            <button class="test-button" onclick="testTTS()">Test Text-to-Speech</button>
-            <button class="test-button" onclick="testChat()">Test Chat</button>
-            <div id="test-result" class="result hidden"></div>
-        </div>
-    </div>
-
-    <script>
-        // Check ElevenLabs status on load
-        fetch('/api/health')
-            .then(res => res.json())
-            .then(data => {
-                const status = document.getElementById('elevenlabs-status');
-                if (data.services && data.services.elevenlabs) {
-                    status.innerHTML = '✅ Configured';
-                    status.className = 'status-value success';
-                } else {
-                    status.innerHTML = '❌ Not Configured';
-                    status.className = 'status-value error';
-                }
-            })
-            .catch(() => {
-                document.getElementById('elevenlabs-status').innerHTML = '❓ Unknown';
-            });
-
-        function showResult(data, isError = false) {
-            const result = document.getElementById('test-result');
-            result.className = 'result ' + (isError ? 'error' : 'success');
-            result.textContent = JSON.stringify(data, null, 2);
-        }
-
-        function testHealth() {
-            fetch('/api/health')
-                .then(res => res.json())
-                .then(data => showResult(data))
-                .catch(err => showResult({error: err.message}, true));
-        }
-
-        function testTTS() {
-            fetch('/api/tools/text-to-speech', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text: 'Hello, this is a test of the text-to-speech API!'})
-            })
-                .then(res => res.json())
-                .then(data => showResult(data))
-                .catch(err => showResult({error: err.message}, true));
-        }
-
-        function testChat() {
-            fetch('/api/chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: 'Hello, how are you?'})
-            })
-                .then(res => res.json())
-                .then(data => showResult(data))
-                .catch(err => showResult({error: err.message}, true));
-        }
-    </script>
-</body>
-</html>`;
-      
-      res.setHeader('Content-Type', 'text/html');
-      return res.status(200).send(html);
-    }
+    // API Routes - handle before static files
     
     // Health check endpoint
     if (url === '/api/health' && method === 'GET') {
@@ -275,7 +64,7 @@ module.exports = (req, res) => {
             });
           }
           
-          // Return success response
+          // Return success response (integrate with ElevenLabs API later)
           return res.status(200).json({
             success: true,
             message: 'Text-to-speech conversion ready',
@@ -313,7 +102,7 @@ module.exports = (req, res) => {
             });
           }
           
-          // Return echo response
+          // Return echo response (integrate with AI later)
           return res.status(200).json({
             response: `I received your message: "${message}". This is a placeholder response. Full AI integration coming soon!`,
             timestamp: new Date().toISOString()
@@ -329,18 +118,15 @@ module.exports = (req, res) => {
       return; // Don't send response here, wait for 'end' event
     }
     
-    // 404 for unknown routes
-    return res.status(404).json({
-      error: 'Route not found',
-      message: `The requested route ${url} does not exist.`,
-      method: method,
-      availableRoutes: {
-        root: 'GET /',
-        health: 'GET /api/health',
-        textToSpeech: 'POST /api/tools/text-to-speech',
-        chat: 'POST /api/chat'
-      }
-    });
+    // For all non-API routes, serve the React app
+    // Vercel will handle static assets separately via routing
+    
+    // Serve React App HTML (actual built content)
+    const indexHtml = `<!doctype html><html lang="en"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="#000000"/><meta name="description" content="LinK - Making digital content accessible for everyone"/><link rel="apple-touch-icon" href="/logo192.png"/><link rel="manifest" href="/manifest.json"/><title>LinK | Accessibility Platform</title><script defer="defer" src="/static/js/main.4b89aa1a.js"></script><link href="/static/css/main.3ba91762.css" rel="stylesheet"></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>`;
+    
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache');
+    return res.status(200).send(indexHtml);
     
   } catch (error) {
     console.error('API Error:', error);
