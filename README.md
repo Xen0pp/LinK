@@ -358,5 +358,3 @@ Special thanks to our amazing contributors and the organizations that make LinK 
 *LinK Accessibility Platform - Connecting everyone through technology* 🌟
 
 </div>
-# LinK
-# LinK
