@@ -1,188 +1,361 @@
 # 🌟 LinK Accessibility Platform
+### *Bridging Communication Gaps Through AI-Powered Accessibility* 🌉
 
-Making digital content accessible for everyone through AI-powered tools and sign language learning.
+<div align="center">
 
-## ✨ Features
+![LinK Platform](https://img.shields.io/badge/LinK-Accessibility%20Platform-blue?style=for-the-badge&logo=react&logoColor=white)
+![AI Powered](https://img.shields.io/badge/AI-Powered-green?style=for-the-badge&logo=openai&logoColor=white)
+![WCAG Compliant](https://img.shields.io/badge/WCAG-2.1%20AA-purple?style=for-the-badge&logo=w3c&logoColor=white)
+![MIT License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=mit&logoColor=white)
 
-- 🧏‍♀️ **Sign Language Learning**: Interactive ASL alphabet and dictionary
-- 🔍 **AI-Powered Accessibility**: Image recognition and text extraction
-- 🎨 **Beautiful Dark/Light Themes**: Accessible design for all users
-- 🔐 **Firebase Authentication**: Secure user management
-- 📱 **Responsive Design**: Works on all devices
-- ♿ **WCAG Compliant**: Built with accessibility in mind
+*Making digital accessibility universal, intuitive, and inclusive for everyone* ✨
 
-## 🛠️ Tech Stack
+[🚀 Get Started](#-quick-installation) • [✨ Features](#-core-features) • [🛠️ Tech Stack](#️-tech-stack) • [📚 Documentation](#-documentation)
 
-- **Frontend**: React, TypeScript, Tailwind CSS, Material-UI
-- **Backend**: Node.js, Express, TypeScript
-- **AI Services**: Google Gemini, ElevenLabs, Hugging Face
-- **Authentication**: Firebase Auth
-- **Database**: Firestore (NoSQL)
-- **Deployment**: Vercel, Railway, Netlify ready
-
-## 🏃‍♂️ Quick Start
-
-### Local Development
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Pixelx-1/LinK.git
-   cd LinK
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Frontend
-   cd frontend
-   npm install --legacy-peer-deps
-   
-   # Backend
-   cd ../backend
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   # Copy .env.example to .env and fill in your API keys
-   cp .env.example .env
-   ```
-
-4. **Start development servers**
-   ```bash
-   # Backend (Terminal 1)
-   cd backend && npm run dev
-   
-   # Frontend (Terminal 2)
-   cd frontend && npm start
-   ```
-
-5. **Open your browser**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-
-### Using the Deploy Script
-
-Run the automated deployment script:
-```bash
-chmod +x deploy.sh
-./deploy.sh
-```
-
-## 🌐 Deployment Options
-
-### Vercel (Recommended)
-- Perfect for React + API routes
-- Free tier with global CDN
-- Automatic deployments from GitHub
-
-### Railway
-- Full-stack hosting with database
-- Simple pricing and scaling
-- Great for production applications
-
-### Netlify
-- Excellent for static sites + functions
-- Free tier with form handling
-- Great developer experience
-
-See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed instructions.
-
-## 🔧 Environment Variables
-
-Create a `.env` file in the root directory:
-
-```bash
-# Server Configuration
-PORT=8000
-NODE_ENV=development
-
-# AI Service API Keys
-GOOGLE_GEMINI_API_KEY=your_gemini_api_key
-ELEVENLABS_API_KEY=your_elevenlabs_api_key
-HUGGINGFACE_API_KEY=your_huggingface_api_key
-
-# Authentication
-JWT_SECRET=your_super_secure_jwt_secret
-JWT_EXPIRES_IN=7d
-
-# Firebase Configuration (already configured)
-# API keys are included for demo purposes
-```
-
-## 📁 Project Structure
-
-```
-LinK/
-├── frontend/          # React application
-│   ├── src/
-│   │   ├── components/    # Reusable components
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom React hooks
-│   │   └── config/        # Firebase config
-│   └── public/        # Static assets
-├── backend/           # Express API server
-│   ├── src/
-│   │   ├── routes/        # API routes
-│   │   ├── middleware/    # Express middleware
-│   │   ├── models/        # Data models
-│   │   └── utils/         # Utility functions
-│   └── uploads/       # File uploads
-├── deploy.sh          # Deployment script
-├── vercel.json        # Vercel configuration
-└── DEPLOYMENT_GUIDE.md # Detailed deployment guide
-```
-
-## 🎯 Usage
-
-### For Deaf/Hard of Hearing Users
-- **Alphabet Learning**: Interactive ASL alphabet with visual feedback
-- **Dictionary**: Comprehensive sign language dictionary
-- **Flashcards**: Practice with spaced repetition
-- **Progress Tracking**: Monitor your learning journey
-
-### For Blind/Visually Impaired Users
-- **Image Description**: AI-powered image analysis
-- **Text Extraction**: OCR from images
-- **Voice Navigation**: Speech-enabled interface
-- **Screen Reader Optimized**: Full ARIA support
-
-## 🔐 Authentication
-
-The platform includes Firebase Authentication with:
-- Email/password registration and login
-- Google OAuth integration
-- User profile management
-- Progress tracking across sessions
-
-## 🎨 Accessibility Features
-
-- **WCAG 2.1 AA Compliant**: Meets accessibility standards
-- **High Contrast Themes**: Dark and light modes
-- **Keyboard Navigation**: Full keyboard accessibility
-- **Screen Reader Support**: Comprehensive ARIA labels
-- **Responsive Design**: Works on all devices and screen sizes
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Firebase for authentication and database
-- Google Gemini for AI capabilities
-- ElevenLabs for voice synthesis
-- Hugging Face for machine learning models
-- The accessibility community for guidance and feedback
+</div>
 
 ---
 
-**Made with ❤️ for accessibility and inclusion** 
-# Li-nK
+## 🎯 What is LinK?
+
+**LinK** is a revolutionary accessibility platform that breaks down communication barriers using cutting-edge AI technology. Whether you're deaf, hard of hearing, blind, visually impaired, or simply want to learn sign language, LinK provides a comprehensive suite of tools to enhance digital accessibility and foster inclusive communication.
+
+### 🌈 Our Vision
+> *"Technology should be a bridge, not a barrier. LinK connects people through innovative accessibility solutions that make digital content truly accessible for everyone."*
+
+---
+
+## 🚀 Core Features
+
+### 🤟 **Sign Language Learning Hub**
+- **📚 Interactive ASL Dictionary**: 200+ signs with high-quality images and descriptions
+- **🔤 Alphabet Mastery**: Complete A-Z finger spelling with visual feedback
+- **🃏 Smart Flashcards**: Spaced repetition learning system for effective memorization
+- **📊 Progress Tracking**: Monitor your learning journey with detailed analytics
+- **🎯 Common Signs**: 70+ essential everyday signs for practical communication
+
+### 🤖 **AI-Powered Accessibility Tools**
+- **🖼️ Image Description**: Advanced AI analysis with Google Gemini integration
+- **📝 Text Extraction (OCR)**: Extract text from images with high accuracy
+- **🗣️ Voice Synthesis**: Natural-sounding speech with ElevenLabs technology
+- **💬 AI Chat Assistant**: Contextual help and guidance for accessibility needs
+- **🎤 Voice Navigation**: Complete voice control for hands-free interaction
+
+### ♿ **Universal Accessibility**
+- **🎨 Dynamic Theming**: Beautiful dark/light modes optimized for visual comfort
+- **⌨️ Keyboard Navigation**: Full keyboard accessibility with logical tab order
+- **📱 Responsive Design**: Seamless experience across all devices and screen sizes
+- **🔊 Screen Reader Optimized**: Comprehensive ARIA labels and semantic HTML
+- **📐 WCAG 2.1 AA Compliant**: Meets international accessibility standards
+
+### 🔐 **Secure & Personalized**
+- **🔥 Firebase Authentication**: Secure login with email/password and Google OAuth
+- **👤 User Profiles**: Personalized learning preferences and progress tracking
+- **💾 Data Persistence**: Your progress is always saved and synced
+- **🛡️ Privacy First**: Your data is protected with enterprise-grade security
+
+---
+
+## 🛠️ Tech Stack
+
+<div align="center">
+
+| Frontend | Backend | AI Services | Infrastructure |
+|----------|---------|-------------|---------------|
+| ![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react&logoColor=white) | ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat&logo=node.js&logoColor=white) | ![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?style=flat&logo=google&logoColor=white) | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white) |
+| ![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?style=flat&logo=typescript&logoColor=white) | ![Express](https://img.shields.io/badge/Express.js-4+-000000?style=flat&logo=express&logoColor=white) | ![ElevenLabs](https://img.shields.io/badge/ElevenLabs-Voice-FF6B35?style=flat&logo=speaker&logoColor=white) | ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=white) |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white) | ![RESTful API](https://img.shields.io/badge/RESTful-API-FF6B35?style=flat&logo=api&logoColor=white) | ![Hugging Face](https://img.shields.io/badge/Hugging-Face-FFD21E?style=flat&logo=huggingface&logoColor=black) | ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat&logo=railway&logoColor=white) |
+| ![Material-UI](https://img.shields.io/badge/Material--UI-5+-0081CB?style=flat&logo=mui&logoColor=white) | ![JWT Auth](https://img.shields.io/badge/JWT-Auth-000000?style=flat&logo=jsonwebtokens&logoColor=white) | ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white) | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat&logo=netlify&logoColor=white) |
+
+</div>
+
+---
+
+## ⚡ Quick Installation
+
+### 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18.0.0 or higher) 📦
+- **npm** (v8.0.0 or higher) 📦
+- **Git** (latest version) 🔄
+- **A modern web browser** (Chrome, Firefox, Safari, Edge) 🌐
+
+### 🚀 One-Command Setup
+
+For the fastest setup experience, use our automated installation script:
+
+```bash
+# Clone and setup the entire project with one command
+git clone https://github.com/Pixelx-1/LinK.git
+cd LinK
+npm run setup
+```
+
+### 📖 Manual Installation
+
+If you prefer step-by-step control, follow these detailed instructions:
+
+#### 1️⃣ **Clone the Repository**
+```bash
+git clone https://github.com/Pixelx-1/LinK.git
+cd LinK
+```
+
+#### 2️⃣ **Install Dependencies**
+```bash
+# Install root dependencies
+npm install
+
+# Install backend dependencies
+npm run install:backend
+
+# Install frontend dependencies  
+npm run install:frontend
+```
+
+#### 3️⃣ **Environment Configuration**
+```bash
+# Copy the environment template
+cp env.example .env
+
+# Edit the .env file with your API keys
+nano .env  # or use your preferred editor
+```
+
+**Required Environment Variables:**
+```bash
+# 🔑 API Keys (Get these from respective providers)
+GOOGLE_GEMINI_API_KEY=your_gemini_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here  
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+
+# 🔐 Security
+JWT_SECRET=your_super_secure_jwt_secret_here
+JWT_EXPIRES_IN=7d
+
+# ⚙️ Server Configuration
+PORT=8000
+NODE_ENV=development
+```
+
+#### 4️⃣ **Start the Application**
+```bash
+# Start the unified server (frontend + backend)
+npm start
+
+# Alternative: Start separately
+npm run dev  # Development mode with hot reload
+```
+
+#### 5️⃣ **Access the Platform**
+```bash
+🌐 Frontend: http://localhost:8000
+🔗 API Docs: http://localhost:8000/api
+📊 Health Check: http://localhost:8000/api/health
+```
+
+---
+
+## 🎛️ Available Scripts
+
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `npm run setup` | 🚀 Complete project initialization | First-time setup |
+| `npm start` | ▶️ Start unified server | Production mode |
+| `npm run dev` | 🔄 Development mode | Development |
+| `npm run build` | 🔨 Build for production | Deployment prep |
+| `npm run clean` | 🧹 Clean build files | Reset builds |
+| `npm run logs` | 📝 View server logs | Debugging |
+| `npm test` | 🧪 Test connectivity | Health check |
+
+---
+
+## 📂 Project Architecture
+
+```
+LinK/
+├── 🎨 frontend/                 # React TypeScript Application
+│   ├── src/
+│   │   ├── components/         # 🧩 Reusable UI components
+│   │   │   ├── auth/          # 🔐 Authentication components
+│   │   │   └── deaf/          # 🤟 Sign language components
+│   │   ├── pages/             # 📄 Main application pages
+│   │   ├── hooks/             # 🎣 Custom React hooks
+│   │   └── utils/             # 🛠️ Utility functions
+│   └── public/
+│       └── assets/signs/      # 🤟 200+ ASL sign images
+│
+├── 🔙 backend/                  # Node.js Express API Server
+│   ├── src/
+│   │   ├── routes/            # 🛣️ API endpoints
+│   │   ├── services/          # 🤖 AI service integrations
+│   │   ├── middleware/        # ⚙️ Express middleware
+│   │   └── utils/             # 🔧 Server utilities
+│   └── data/                  # 📊 Application data
+│
+├── 📱 asl-learning-app/         # Specialized ASL Learning Module
+├── 🌐 link-accessibility-platform/ # Next.js Alternative
+├── 🐍 scripts/                 # Python processing scripts
+└── 📚 Documentation & Configs
+```
+
+---
+
+## 🎯 Usage Guide
+
+### 🤟 **For Deaf/Hard of Hearing Users**
+
+1. **📚 Start with the Dictionary**
+   - Browse 200+ professionally curated ASL signs
+   - Search by keyword or browse categories
+   - Practice with high-quality visual demonstrations
+
+2. **🔤 Master the Alphabet**
+   - Interactive A-Z finger spelling practice
+   - Real-time feedback and corrections
+   - Progress tracking for each letter
+
+3. **🃏 Use Flashcards**
+   - Spaced repetition learning system
+   - Customizable difficulty levels
+   - Track your learning statistics
+
+### 👁️ **For Blind/Visually Impaired Users**
+
+1. **🖼️ Image Analysis**
+   - Upload any image for AI-powered description
+   - Get detailed, contextual descriptions
+   - Extract text from images (OCR)
+
+2. **🎤 Voice Navigation**
+   - Complete voice control interface
+   - Natural language commands
+   - Audio feedback for all interactions
+
+3. **🔊 Screen Reader Optimization**
+   - Full ARIA label support
+   - Logical tab order navigation
+   - High contrast themes available
+
+---
+
+## 🌐 Deployment Options
+
+### ☁️ **Vercel (Recommended)**
+Perfect for React applications with built-in API support:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy with one command
+vercel --prod
+```
+
+### 🚂 **Railway**
+Full-stack hosting with database support:
+
+```bash
+# Connect to Railway
+railway login
+railway link
+railway up
+```
+
+### 🌊 **Netlify**
+Excellent for static sites with serverless functions:
+
+```bash
+# Build and deploy
+npm run build
+netlify deploy --prod --dir=frontend/build
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Here's how to get started:
+
+### 🔧 **Development Setup**
+```bash
+# Fork the repository on GitHub
+git clone https://github.com/YOUR_USERNAME/LinK.git
+cd LinK
+
+# Create a feature branch
+git checkout -b feature/amazing-new-feature
+
+# Make your changes and commit
+git commit -m "✨ Add amazing new feature"
+
+# Push and create a Pull Request
+git push origin feature/amazing-new-feature
+```
+
+### 📝 **Contribution Guidelines**
+- Follow TypeScript and React best practices
+- Maintain WCAG 2.1 AA accessibility standards
+- Add tests for new features
+- Update documentation as needed
+- Use conventional commit messages
+
+---
+
+## 🎨 Accessibility Standards
+
+LinK is built with accessibility as a core principle:
+
+- ✅ **WCAG 2.1 AA Compliant**
+- ✅ **Screen Reader Compatible**
+- ✅ **Keyboard Navigation Support**
+- ✅ **High Contrast Themes**
+- ✅ **Responsive Design**
+- ✅ **Voice Control Interface**
+- ✅ **Multiple Input Methods**
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+Special thanks to our amazing contributors and the organizations that make LinK possible:
+
+- 🔥 **Firebase** for authentication and real-time database
+- 🤖 **Google Gemini** for advanced AI capabilities
+- 🗣️ **ElevenLabs** for natural voice synthesis
+- 🤗 **Hugging Face** for machine learning models
+- ♿ **The Accessibility Community** for guidance and feedback
+- 🌟 **Open Source Contributors** who make this project better every day
+
+---
+
+## 📞 Support & Community
+
+<div align="center">
+
+**Need help or want to contribute?**
+
+[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-red?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Pixelx-1/LinK/issues)
+[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?style=for-the-badge&logo=discord&logoColor=white)](#)
+[![Documentation](https://img.shields.io/badge/Docs-Read%20More-blue?style=for-the-badge&logo=gitbook&logoColor=white)](#)
+
+</div>
+
+---
+
+<div align="center">
+
+**Made with ❤️ for accessibility and inclusion**
+
+*LinK Accessibility Platform - Connecting everyone through technology* 🌟
+
+</div>
+# LinK
