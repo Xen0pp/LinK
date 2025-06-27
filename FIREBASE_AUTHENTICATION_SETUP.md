@@ -1,4 +1,4 @@
-# Firebase Authentication Setup - LinK Project
+# 🔥 Firebase Authentication Setup Guide
 
 ## 🔥 Overview
 Your LinK project now has a complete Firebase authentication system configured with your project credentials:
@@ -127,14 +127,16 @@ To manage your Firebase project:
 Create a `.env` file in the frontend directory for environment-specific config:
 
 ```env
-REACT_APP_FIREBASE_API_KEY=AIzaSyBYvuFaI3v-KsRZVjozMkfAJZIdxT2TVGE
-REACT_APP_FIREBASE_AUTH_DOMAIN=link-7ca48.firebaseapp.com
-REACT_APP_FIREBASE_PROJECT_ID=link-7ca48
+REACT_APP_FIREBASE_API_KEY=your_actual_firebase_api_key_here
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
 REACT_APP_FIREBASE_STORAGE_BUCKET=link-7ca48.firebasestorage.app
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=737228900009
 REACT_APP_FIREBASE_APP_ID=1:737228900009:web:2064ef3468a81743ab0bb8
 REACT_APP_FIREBASE_MEASUREMENT_ID=G-EQ6987YSGR
 ```
+
+**🔐 Get your API keys from**: https://console.firebase.google.com/project/your-project/settings/general
 
 ## 🛠️ Troubleshooting
 

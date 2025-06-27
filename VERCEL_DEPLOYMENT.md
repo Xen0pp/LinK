@@ -1,4 +1,24 @@
-# Vercel Deployment Guide for LinK Accessibility Platform
+# 🚀 **LinK Accessibility Platform - Vercel Deployment Guide**
+
+## 🔐 **Step 1: Environment Variables Setup**
+
+Set your API keys in your Vercel dashboard:
+
+```bash
+# 🔑 CRITICAL SECURITY NOTE: 
+# NEVER put real API keys in documentation files!
+# Use your actual keys from your provider dashboards
+
+# Firebase Configuration (NEXT_PUBLIC_ prefix required for client-side)
+vercel env add NEXT_PUBLIC_FIREBASE_API_KEY
+vercel env add NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+vercel env add NEXT_PUBLIC_FIREBASE_PROJECT_ID
+
+# ElevenLabs API (Server-side only)
+vercel env add ELEVENLABS_API_KEY
+# Use your actual key from: https://elevenlabs.io/app/settings/api-keys
+# Example format: sk_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
 
 ## 🚀 **FIXED: Dependency-Free Serverless Function**
 
@@ -104,46 +124,4 @@ curl -X POST https://your-app.vercel.app/api/tools/text-to-speech \
 
 ✅ **Your API is working when:**
 - No more `FUNCTION_INVOCATION_FAILED` errors
-- Health check shows `"elevenlabs": true`
-- All API endpoints return valid JSON
-- No dependency loading issues
-
-### 8. Troubleshooting
-
-**Still Getting Errors?**
-- Clear Vercel build cache: Redeploy from scratch
-- Check environment variables are set correctly
-- Verify the ElevenLabs API key format
-
-**API Not Responding?**
-- Check Vercel function logs (should be much cleaner now)
-- Test individual endpoints with curl
-- Verify CORS headers are working
-
-### 9. Environment Variables Reference
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ELEVENLABS_API_KEY` | Yes | Your ElevenLabs TTS API key |
-| `NODE_ENV` | Recommended | Set to `production` |
-
-### 10. Performance Benefits
-
-- ⚡ **Faster Cold Starts**: No dependencies to load
-- 🔧 **More Reliable**: No module resolution issues
-- 📦 **Smaller Bundle**: Minimal function size
-- 🚀 **Better Performance**: Direct Node.js execution
-
----
-
-## ✨ **Your ElevenLabs API Key is Ready!**
-
-Your API key `sk_cb52c8a63316a3470602a501e685899869a35446cb63fa57` is configured and ready to use. The health check endpoint will confirm it's working.
-
----
-
-## Need Help?
-
-- **Test Commands**: Use the curl examples above
-- **Vercel Logs**: Check for much cleaner logs now
-- **API Status**: `/api/health` will show detailed status
+- Health check shows `
