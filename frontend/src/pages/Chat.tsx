@@ -114,16 +114,23 @@ const Chat: React.FC = () => {
       });
       
       console.log('Chat response received:', response.data);
+      console.log('Response content:', response.data.response);
 
       // Remove typing indicator and add actual response
       setMessages(prev => {
         const filtered = prev.filter(msg => msg.id !== 'typing');
+        
+        // Ensure we have a valid response
+        const responseContent = response.data?.response || response.data?.data?.response || 'I received your message but there was an issue processing the response.';
+        
         const assistantMessage: Message = {
           id: Date.now().toString(),
           type: 'assistant',
-          content: response.data.response,
+          content: responseContent,
           timestamp: new Date(),
         };
+        
+        console.log('Adding assistant message:', assistantMessage);
         return [...filtered, assistantMessage];
       });
     } catch (error) {
@@ -131,14 +138,29 @@ const Chat: React.FC = () => {
       setMessages(prev => prev.filter(msg => msg.id !== 'typing'));
       
       console.error('Chat error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        status: axios.isAxiosError(error) ? error.response?.status : 'No status',
+        data: axios.isAxiosError(error) ? error.response?.data : 'No data'
+      });
       
-      let errorContent = 'Sorry, I seem to be having connection issues at the moment. While I get that sorted out, here\'s a quick tip: Remember that good accessibility starts with proper semantic HTML structure, descriptive alt text, and ensuring keyboard navigation works well. How about we try your question again in a moment?';
+      let errorContent = 'I\'m having trouble connecting right now, but I\'m still here to help! Let me share a quick accessibility tip: Good accessibility starts with proper semantic HTML structure and clear, descriptive content. Try asking your question again - I should be able to help!';
       
-      if (axios.isAxiosError(error) && error.code === 'ERR_NETWORK') {
-        errorContent = 'I\'m currently having trouble connecting to my backend services. Please make sure the backend server is running and try again. In the meantime, here\'s a quick accessibility tip: Always use semantic HTML elements like <header>, <nav>, <main>, and <footer> to help screen readers understand your page structure!';
-        toast.error('Backend server is not available. Please try again later.');
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ERR_NETWORK') {
+          errorContent = 'I\'m currently having trouble connecting to my backend services. The server might be starting up - please try again in a moment. In the meantime, here\'s a quick accessibility tip: Always use semantic HTML elements like <header>, <nav>, <main>, and <footer> to help screen readers understand your page structure!';
+          toast.error('Backend server is not available. Please try again later.');
+        } else if (error.response?.status === 404) {
+          errorContent = 'It looks like there\'s a routing issue with the chat API. The backend server is running but the chat endpoint may not be properly configured. Let me help you anyway with some accessibility guidance!';
+          toast.error('Chat API endpoint not found.');
+        } else if (error.response && error.response.status >= 500) {
+          errorContent = 'The server encountered an error processing your request. Don\'t worry though - I can still provide helpful accessibility guidance! What would you like to know about making your content more accessible?';
+          toast.error('Server error occurred.');
+        } else {
+          toast.error('Failed to get response from AI assistant');
+        }
       } else {
-        toast.error('Failed to get response from AI assistant');
+        toast.error('Unexpected error occurred');
       }
       
       const errorMessage: Message = {

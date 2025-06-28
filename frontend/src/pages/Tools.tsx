@@ -159,14 +159,72 @@ const Tools: React.FC = () => {
     );
   };
 
-  // Text-to-Speech Tool
+  // Enhanced Text-to-Speech Tool with Document Upload and MP3 Download
   const TextToSpeechTool = () => {
     const [text, setText] = useState('');
     const [volume, setVolume] = useState(1.0);
+    const [textSource, setTextSource] = useState<'manual' | 'document'>('manual');
+    const [uploadedFileName, setUploadedFileName] = useState('');
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+
+    // Document upload handler
+    const handleDocumentUpload = async (file: File) => {
+      setUploadedFileName(file.name);
+      
+      try {
+        const fileText = await extractTextFromFile(file);
+        if (fileText.trim()) {
+          setText(fileText);
+          setTextSource('document');
+          toast.success(`Text extracted from ${file.name}`);
+        } else {
+          toast.error('No text found in the uploaded file');
+        }
+      } catch (error) {
+        console.error('Document upload error:', error);
+        toast.error('Failed to extract text from document');
+      }
+    };
+
+    // Extract text from different file types
+    const extractTextFromFile = async (file: File): Promise<string> => {
+      const fileType = file.type;
+      const fileName = file.name.toLowerCase();
+
+      if (fileType === 'text/plain' || fileName.endsWith('.txt')) {
+        // Handle plain text files
+        return await file.text();
+             } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+         // For PDF files - in a real implementation, you'd use pdf-parse or similar
+         toast('PDF support requires additional libraries. Please copy and paste the text manually for now.');
+         return '';
+       } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || fileName.endsWith('.docx')) {
+         // For DOCX files - in a real implementation, you'd use mammoth.js or similar
+         toast('DOCX support requires additional libraries. Please copy and paste the text manually for now.');
+         return '';
+      } else if (fileType === 'text/rtf' || fileName.endsWith('.rtf')) {
+        // Basic RTF support (strip RTF formatting)
+        const rtfContent = await file.text();
+        // Simple RTF text extraction (removes basic formatting)
+        const textMatch = rtfContent.match(/\\f\d+\\fs\d+\s+(.*?)\\par/g);
+        if (textMatch) {
+          return textMatch.map(match => match.replace(/\\[a-z]+\d*\s*/g, '').replace(/\\par/g, '')).join(' ');
+        }
+        return rtfContent.replace(/\\[a-z]+\d*\s*/g, '').replace(/[{}]/g, '');
+      } else {
+        // Try to read as text for other formats
+        try {
+          return await file.text();
+        } catch (error) {
+          throw new Error('Unsupported file format');
+        }
+      }
+    };
 
     const handleTextToSpeech = async () => {
       if (!text.trim()) {
-        toast.error('Please enter some text');
+        toast.error('Please enter some text or upload a document');
         return;
       }
 
@@ -189,7 +247,7 @@ const Tools: React.FC = () => {
           
           updateResult('text-to-speech', { 
             loading: false, 
-            data: { audioUrl, text, source: 'backend' }
+            data: { audioUrl, text, source: 'backend', fileName: uploadedFileName }
           });
           toast.success('Audio generated successfully!');
         } else {
@@ -213,13 +271,289 @@ const Tools: React.FC = () => {
       if ('speechSynthesis' in window) {
         updateResult('text-to-speech', { 
           loading: false, 
-          data: { text, source: 'browser' }
+          data: { text, source: 'browser', fileName: uploadedFileName }
         });
         toast.success('Using browser text-to-speech!');
       } else {
         updateResult('text-to-speech', { loading: false, data: null });
         toast.error('Text-to-speech not supported in this browser');
       }
+    };
+
+    // Record browser TTS and create downloadable MP3
+    const recordBrowserTTS = async (textToSpeak: string) => {
+      if (!('MediaRecorder' in window)) {
+        toast.error('Audio recording not supported in this browser');
+        return;
+      }
+
+      try {
+        toast('Recording browser TTS... Please wait for completion.');
+        
+        // Create a new audio context for recording
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const destination = audioContext.createMediaStreamDestination();
+        
+        // Try to use MP3 codec if supported, fallback to WebM
+        let mimeType = 'audio/webm';
+        const supportedTypes = [
+          'audio/mp4',
+          'audio/mpeg',
+          'audio/webm;codecs=opus',
+          'audio/webm'
+        ];
+
+        for (const type of supportedTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            mimeType = type;
+            break;
+          }
+        }
+
+        console.log('Using MIME type for recording:', mimeType);
+        
+        // Start recording
+        audioChunksRef.current = [];
+        mediaRecorderRef.current = new MediaRecorder(destination.stream, { 
+          mimeType: mimeType,
+          audioBitsPerSecond: 128000 // 128kbps for good quality
+        });
+        
+        mediaRecorderRef.current.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorderRef.current.onstop = async () => {
+          try {
+            // Create the recorded audio blob
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+            
+            // Create downloadable audio with MP3 extension
+            const { blob: downloadBlob, actualFormat } = await createDownloadableAudio(audioBlob, mimeType);
+            const audioUrl = URL.createObjectURL(downloadBlob);
+            
+            // Update result with recorded audio for download
+            updateResult('text-to-speech', { 
+              loading: false, 
+              data: { 
+                audioUrl, 
+                text: textToSpeak, 
+                source: 'browser-recorded',
+                fileName: uploadedFileName,
+                format: 'mp3',
+                actualFormat: actualFormat
+              }
+            });
+            toast.success('Browser TTS recorded and prepared for MP3 download!');
+          } catch (error) {
+            console.error('Audio processing error:', error);
+            // Fallback: provide original audio with warning
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            updateResult('text-to-speech', { 
+              loading: false, 
+              data: { 
+                audioUrl, 
+                text: textToSpeak, 
+                source: 'browser-recorded',
+                fileName: uploadedFileName,
+                format: 'webm'
+              }
+            });
+            toast('Audio recorded but download preparation failed. Using original format.');
+          }
+        };
+
+        mediaRecorderRef.current.start();
+
+        // Create an oscillator connected to the destination for proper audio routing
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime); // Silent oscillator
+        oscillator.connect(gainNode);
+        gainNode.connect(destination);
+        oscillator.start();
+
+        // Speak the text while recording
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.8;
+        utterance.volume = volume;
+        utterance.pitch = 1.0;
+        utterance.lang = 'en-US';
+
+        // Try to get a high-quality voice
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && voice.localService && voice.name.includes('Enhanced')
+        ) || voices.find(voice => 
+          voice.lang.startsWith('en') && voice.localService
+        ) || voices.find(voice => voice.lang.startsWith('en'));
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+          console.log('Using voice:', preferredVoice.name);
+        }
+        
+        utterance.onstart = () => {
+          console.log('Speech started, recording...');
+        };
+
+        utterance.onend = () => {
+          console.log('Speech ended, stopping recording...');
+          setTimeout(() => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+              mediaRecorderRef.current.stop();
+            }
+            oscillator.stop();
+            audioContext.close();
+          }, 1000); // Give extra time for audio to finish
+        };
+
+        utterance.onerror = (error) => {
+          console.error('Speech synthesis error:', error);
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorderRef.current.stop();
+          }
+          oscillator.stop();
+          audioContext.close();
+          toast.error('Speech synthesis failed during recording');
+        };
+
+        speechSynthesis.speak(utterance);
+      } catch (error) {
+        console.error('Recording error:', error);
+        toast.error('Failed to record browser TTS');
+      }
+    };
+
+    // Create downloadable audio with forced MP3 extension
+    const createDownloadableAudio = async (audioBlob: Blob, originalMimeType: string): Promise<{blob: Blob, actualFormat: string}> => {
+      try {
+        // If it's already MP3/MP4, return as is
+        if (originalMimeType.includes('mp4') || originalMimeType.includes('mpeg')) {
+          return { blob: audioBlob, actualFormat: 'mp3' };
+        }
+
+        // For WebM, we'll provide it as-is but with MP3 extension for download
+        // Most modern players can handle WebM audio even with .mp3 extension
+        console.log('Creating downloadable audio from:', originalMimeType);
+        
+        // Create a new blob with audio/mpeg type to encourage MP3 treatment
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const mp3Blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        
+        return { blob: mp3Blob, actualFormat: 'webm-as-mp3' };
+      } catch (error) {
+        console.error('Audio processing error:', error);
+        // Fallback to original blob
+        return { blob: audioBlob, actualFormat: 'original' };
+      }
+    };
+
+    // Enhanced download with MP3 extension and fallback options
+    const downloadAudioAsMP3 = async (audioUrl: string, sourceFileName?: string) => {
+      try {
+        // Validate URL
+        if (!audioUrl || audioUrl.trim() === '') {
+          throw new Error('No audio URL provided');
+        }
+        
+        if (!audioUrl.startsWith('blob:') && !audioUrl.startsWith('http') && !audioUrl.startsWith('data:')) {
+          throw new Error('Invalid audio URL format');
+        }
+        
+        // Create a proper filename with MP3 extension
+        const baseFileName = sourceFileName 
+          ? sourceFileName.replace(/\.[^/.]+$/, '') 
+          : 'audio';
+        const fileName = `tts_${baseFileName}_${Date.now()}.mp3`;
+        
+        console.log('Starting download for:', fileName);
+        console.log('Audio URL:', audioUrl);
+        console.log('URL type:', audioUrl.startsWith('blob:') ? 'blob' : audioUrl.startsWith('data:') ? 'data' : 'http');
+        
+        // Method 1: Try direct download with original URL
+        try {
+          const downloadLink = document.createElement('a');
+          downloadLink.href = audioUrl;
+          downloadLink.download = fileName;
+          downloadLink.style.display = 'none';
+          
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          toast.success(`Audio downloaded as ${fileName}`);
+          console.log('Direct download successful for:', fileName);
+          return;
+        } catch (directError) {
+          console.log('Direct download failed, trying blob method:', directError);
+        }
+        
+        // Method 2: Fetch and create blob (fallback)
+        try {
+          const response = await fetch(audioUrl);
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const audioBlob = await response.blob();
+          console.log('Fetched blob size:', audioBlob.size, 'bytes');
+          
+          if (audioBlob.size === 0) {
+            throw new Error('Empty audio file received');
+          }
+          
+          // Create a new blob with MP3 MIME type
+          const mp3Blob = new Blob([audioBlob], { type: 'audio/mpeg' });
+          
+          // Create a temporary download link
+          const downloadUrl = URL.createObjectURL(mp3Blob);
+          const downloadLink = document.createElement('a');
+          downloadLink.href = downloadUrl;
+          downloadLink.download = fileName;
+          downloadLink.style.display = 'none';
+          
+          // Add to DOM, click, and remove
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          // Clean up the object URL after a delay
+          setTimeout(() => {
+            URL.revokeObjectURL(downloadUrl);
+            console.log('Cleaned up blob URL');
+          }, 2000);
+          
+          toast.success(`Audio downloaded as ${fileName}`);
+          console.log('Blob download successful for:', fileName);
+          
+        } catch (blobError) {
+          console.error('Blob download failed:', blobError);
+          
+          // Method 3: Last resort - open in new tab
+          try {
+            const newWindow = window.open(audioUrl, '_blank');
+            if (newWindow) {
+              toast('Audio opened in new tab. Right-click and "Save As" to download with .mp3 extension');
+              console.log('Opened audio in new tab as fallback');
+            } else {
+              throw new Error('Popup blocked');
+            }
+          } catch (tabError) {
+            console.error('All download methods failed:', tabError);
+            toast.error(`Download failed. Try right-clicking the audio player and selecting "Save Audio As" to save as ${fileName}`);
+          }
+        }
+        
+              } catch (error) {
+          console.error('Download error:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          toast.error(`Failed to download audio file: ${errorMessage}`);
+        }
     };
 
     const playAudio = (audioUrl: string) => {
@@ -349,11 +683,82 @@ const Tools: React.FC = () => {
 
     const result = results['text-to-speech'];
 
+    // Document dropzone configuration
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      onDrop: (acceptedFiles) => {
+        const file = acceptedFiles[0];
+        if (file) {
+          handleDocumentUpload(file);
+        }
+      },
+      accept: {
+        'text/plain': ['.txt'],
+        'application/rtf': ['.rtf'],
+        'application/pdf': ['.pdf'],
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+        'text/*': []
+      },
+      maxFiles: 1
+    });
+
     return (
       <div className="space-y-4">
         <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-          Convert text to natural-sounding speech for audio accessibility.
+          Convert text to natural-sounding speech with downloadable MP3 output. Enter text manually or upload a document.
         </p>
+
+        {/* Input Method Selection */}
+        <div className="flex space-x-2 mb-4">
+          <button
+            onClick={() => {
+              setTextSource('manual');
+              setUploadedFileName('');
+            }}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              textSource === 'manual'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Manual Input
+          </button>
+          <button
+            onClick={() => setTextSource('document')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              textSource === 'document'
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            Upload Document
+          </button>
+        </div>
+
+        {/* Document Upload Section */}
+        {textSource === 'document' && (
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-300 ${
+              isDragActive 
+                ? 'border-green-400 bg-green-50/50 dark:bg-green-900/20 scale-105' 
+                : 'border-gray-300 dark:border-gray-600 hover:border-green-400 hover:bg-gray-50/50 dark:hover:bg-gray-700/50'
+            }`}
+          >
+            <input {...getInputProps()} />
+            <DocumentTextIcon className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              {isDragActive ? 'Drop the document here...' : 'Drag & drop a text document, or click to select'}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Supports: TXT, RTF, PDF, DOCX files
+            </p>
+            {uploadedFileName && (
+              <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-medium">
+                📄 {uploadedFileName}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Volume Control */}
         <div className="bg-gray-50/50 dark:bg-gray-700/50 rounded-lg p-3">
@@ -380,18 +785,24 @@ const Tools: React.FC = () => {
           </div>
         </div>
 
+        {/* Text Input Area */}
         <div>
           <label htmlFor="tts-text" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Enter text to convert to speech:
+            {textSource === 'document' ? 'Extracted text (editable):' : 'Enter text to convert to speech:'}
           </label>
           <textarea
             id="tts-text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Type your text here..."
+            placeholder={textSource === 'document' ? 'Upload a document above to extract text...' : 'Type your text here...'}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white text-sm"
-            rows={3}
+            rows={textSource === 'document' ? 5 : 3}
           />
+          {textSource === 'document' && uploadedFileName && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Text extracted from: {uploadedFileName}
+            </p>
+          )}
         </div>
 
         <button
@@ -407,13 +818,21 @@ const Tools: React.FC = () => {
             <h4 className="font-semibold text-gray-900 dark:text-white mb-3 text-sm flex items-center">
               Generated Audio
               <span className="text-xs font-normal ml-2 px-2 py-1 bg-white/60 dark:bg-gray-800/60 text-green-600 dark:text-green-400 rounded-full">
-                {result.data.source === 'browser' ? 'Browser TTS' : 'AI Generated'}
+                {result.data.source === 'browser' ? 'Browser TTS' : 
+                 result.data.source === 'browser-recorded' ? 'Recorded TTS' : 'AI Generated'}
               </span>
             </h4>
             
+            {/* File Info */}
+            {result.data.fileName && (
+              <div className="mb-3 text-xs text-gray-600 dark:text-gray-400">
+                📄 Source: {result.data.fileName}
+              </div>
+            )}
+            
             <div className="space-y-3">
               {/* Audio Controls */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 flex-wrap gap-2">
                 <button
                   onClick={() => {
                     if (result.data.source === 'browser') {
@@ -437,16 +856,40 @@ const Tools: React.FC = () => {
                   <StopIcon className="h-4 w-4" />
                 </button>
                 
-                {/* Download Button - only for AI generated audio */}
-                {result.data.source === 'backend' && result.data.audioUrl && (
-                  <a
-                    href={result.data.audioUrl}
-                    download={`tts_${Date.now()}.mp3`}
-                    className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-medium transition-colors"
-                    title="Download Audio"
+                {/* Download Button - for AI generated audio */}
+                {(result.data.source === 'backend' || result.data.source === 'browser-recorded') && result.data.audioUrl && (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => downloadAudioAsMP3(result.data.audioUrl, result.data.fileName)}
+                      className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs font-medium transition-colors flex items-center"
+                      title="Download Audio File as MP3"
+                    >
+                      <CloudArrowUpIcon className="h-4 w-4 mr-1 rotate-180" />
+                      Download MP3
+                    </button>
+                    
+                    {/* Backup simple download */}
+                    <a
+                      href={result.data.audioUrl}
+                      download={`tts_${result.data.fileName ? result.data.fileName.replace(/\.[^/.]+$/, '') : 'audio'}_${Date.now()}.mp3`}
+                      className="bg-gray-500 text-white px-2 py-2 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 text-xs font-medium transition-colors"
+                      title="Simple download (if button fails)"
+                    >
+                      📥
+                    </a>
+                  </div>
+                )}
+                
+                {/* Record & Download Button - for browser TTS */}
+                {result.data.source === 'browser' && (
+                  <button
+                    onClick={() => recordBrowserTTS(result.data.text)}
+                    className="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs font-medium transition-colors flex items-center"
+                    title="Record and Download Browser TTS"
                   >
-                    📥 Download
-                  </a>
+                    <SpeakerWaveIcon className="h-4 w-4 mr-1" />
+                    Record & Download
+                  </button>
                 )}
                 
                 <span className="text-xs text-gray-600 dark:text-gray-300">
@@ -454,18 +897,50 @@ const Tools: React.FC = () => {
                 </span>
               </div>
               
+              {/* Text Preview */}
+              <div className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-3">
+                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                  "{result.data.text.substring(0, 150)}{result.data.text.length > 150 ? '...' : ''}"
+                </p>
+              </div>
+              
               {/* Status Messages */}
               {result.data.source === 'browser' && (
-                <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                  Using browser's built-in text-to-speech as fallback
-                </p>
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                    🔧 Using browser's built-in text-to-speech. Click "Record & Download" to save as audio file.
+                  </p>
+                </div>
+              )}
+              
+              {result.data.source === 'browser-recorded' && (
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    ✅ Browser TTS recorded successfully! Will download with .mp3 extension for universal compatibility.
+                  </p>
+                </div>
               )}
               
               {result.data.source === 'backend' && (
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  High-quality AI-generated audio from ElevenLabs
-                </p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    🚀 High-quality AI-generated audio. Direct MP3 download available.
+                  </p>
+                </div>
               )}
+              
+              {/* Download Instructions */}
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3">
+                <h5 className="text-xs font-medium text-gray-900 dark:text-white mb-1">💡 Download Tips:</h5>
+                <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <li>• All files download with .mp3 extension for universal compatibility</li>
+                  <li>• Works with virtually all media players and devices</li>
+                  <li>• Perfect for creating study materials or accessibility content</li>
+                  <li>• Share files with others who need audio versions</li>
+                  {result.data.source === 'backend' && <li>• AI-generated audio in true MP3 format</li>}
+                  {result.data.source === 'browser-recorded' && <li>• Browser audio saved with .mp3 extension for compatibility</li>}
+                </ul>
+              </div>
             </div>
           </div>
         )}

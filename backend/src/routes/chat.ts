@@ -101,7 +101,7 @@ router.post('/', [
       })),
       {
         role: 'user' as const,
-      content: message,
+        content: message,
       },
     ];
 
@@ -115,19 +115,24 @@ router.post('/', [
       response,
       timestamp: new Date().toISOString(),
       messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      mode: 'ai-powered', // Indicates if using AI or demo mode
     });
   } catch (error) {
     logger.error('Chat error:', error);
     
-    // Provide a helpful fallback response
-    const fallbackResponse = getFallbackResponse(message);
+    // This should rarely happen now with improved AI service
+    const fallbackResponse = `I'm experiencing some technical difficulties at the moment, but I'm still here to help! 
+
+Here's a quick accessibility tip while we get things sorted: Remember that good accessibility starts with semantic HTML structure. Use proper heading hierarchy (h1, h2, h3...) to help screen reader users navigate your content efficiently.
+
+Feel free to ask me about specific accessibility topics like WCAG guidelines, alt text, keyboard navigation, or color contrast - I'll do my best to provide helpful guidance!`;
     
     res.json({
       success: true,
       response: fallbackResponse,
       timestamp: new Date().toISOString(),
-      fallback: true,
       messageId: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      mode: 'fallback',
     });
   }
 }));

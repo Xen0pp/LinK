@@ -12,19 +12,24 @@ const AccessibilityWelcome: React.FC<AccessibilityWelcomeProps> = ({ onModeSelec
   const [hasShown, setHasShown] = useState(false);
 
   useEffect(() => {
-    // Check if this is the first visit or user hasn't selected a mode
+    // Check if user has explicitly chosen to not see the welcome anymore
+    const dontShowAgain = localStorage.getItem('link-dontShowWelcome');
     const hasSeenWelcome = localStorage.getItem('link-accessibility-welcome');
-    const savedMode = localStorage.getItem('link-accessibility-mode');
     
-    if (!hasSeenWelcome && !hasShown) {
+    // Always show welcome unless user has explicitly opted out
+    if (!dontShowAgain && !hasShown) {
       setOpen(true);
       setHasShown(true);
       
       // Speak welcome message
       const welcomeMessage = "Welcome to LinK! I'm your accessibility assistant. I can help you navigate this website. Would you like to use voice control for blind accessibility, or continue with visual features for deaf accessibility? Press B for blind mode, or D for deaf mode.";
       speakText(welcomeMessage);
-    } else if (savedMode) {
-      onModeSelect(savedMode as 'deaf' | 'blind');
+    } else if (hasSeenWelcome) {
+      // User has opted out but has used the system before, apply their last mode
+      const savedMode = localStorage.getItem('link-accessibility-mode');
+      if (savedMode) {
+        onModeSelect(savedMode as 'deaf' | 'blind');
+      }
     }
   }, [hasShown, onModeSelect]);
 
@@ -48,6 +53,19 @@ const AccessibilityWelcome: React.FC<AccessibilityWelcomeProps> = ({ onModeSelec
     } else {
       speakText("Deaf mode activated. Visual interface is optimized for you.");
     }
+  };
+
+  const handleSkip = () => {
+    localStorage.setItem('link-accessibility-welcome', 'true');
+    setOpen(false);
+    onModeSelect(null);
+  };
+
+  const handleDontShowAgain = () => {
+    localStorage.setItem('link-dontShowWelcome', 'true');
+    localStorage.setItem('link-accessibility-welcome', 'true');
+    setOpen(false);
+    onModeSelect(null);
   };
 
   const handleKeyPress = (event: React.KeyboardEvent) => {
@@ -143,7 +161,7 @@ const AccessibilityWelcome: React.FC<AccessibilityWelcomeProps> = ({ onModeSelec
           </motion.div>
         </div>
         
-        <Box mt={4} textAlign="center">
+        <Box mt={4} textAlign="center" className="space-y-3">
           <Typography variant="caption" color="textSecondary">
             Use keyboard: Press <strong>B</strong> for Voice Control or <strong>D</strong> for Visual Interface
           </Typography>
@@ -151,6 +169,26 @@ const AccessibilityWelcome: React.FC<AccessibilityWelcomeProps> = ({ onModeSelec
           <Typography variant="caption" color="textSecondary">
             You can change this setting anytime in your profile.
           </Typography>
+          
+          {/* Skip and Don't Show Again Options */}
+          <div className="pt-4 border-t border-gray-200 space-y-2">
+            <Button
+              variant="text"
+              onClick={handleSkip}
+              className="text-gray-500 hover:text-gray-700 block mx-auto"
+              size="small"
+            >
+              Skip for now
+            </Button>
+            <Button
+              variant="text"
+              onClick={handleDontShowAgain}
+              className="text-xs text-gray-400 hover:text-gray-600 block mx-auto"
+              size="small"
+            >
+              Don't show this welcome again
+            </Button>
+          </div>
         </Box>
       </DialogContent>
     </Dialog>

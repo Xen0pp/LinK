@@ -43,18 +43,25 @@ const VoiceGateway: React.FC<VoiceGatewayProps> = ({ onPreferenceSet }) => {
   const speechSynthRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    // Check if this is the user's first visit
+    // Check if user has explicitly chosen to not see the welcome anymore
+    const dontShowAgain = localStorage.getItem('linK_dontShowWelcome');
     const hasVisited = localStorage.getItem('linK_hasVisited');
-    const userPreference = localStorage.getItem('linK_userPreference');
     
-    if (!hasVisited && !userPreference) {
+    // Always show welcome unless user has explicitly opted out
+    if (!dontShowAgain) {
       setIsOpen(true);
       // Check browser support for speech recognition
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         setBrowserSupported(false);
       }
+    } else if (hasVisited) {
+      // User has opted out but has visited before, apply their last preference
+      const userPreference = localStorage.getItem('linK_userPreference');
+      if (userPreference && userPreference !== 'skip') {
+        onPreferenceSet(userPreference as 'deaf' | 'blind');
+      }
     }
-  }, []);
+  }, [onPreferenceSet]);
 
   useEffect(() => {
     if (isOpen && !hasSpoken && browserSupported) {
@@ -66,10 +73,17 @@ const VoiceGateway: React.FC<VoiceGatewayProps> = ({ onPreferenceSet }) => {
   const speakWelcomeMessage = () => {
     if ('speechSynthesis' in window) {
       const welcomeText = `Welcome to LinK Accessibility Platform! 
-        I can help you navigate to the right section. 
-        Please say "Deaf Learning" if you need help with sign language, 
-        or say "Blind Accessibility" if you need voice-guided navigation. 
-        You can also say "Skip" to browse manually.`;
+        I'm your accessibility assistant and I'm here to help you navigate this website effectively. 
+        
+        If you need sign language learning and visual interface, please say "Deaf Learning". 
+        If you need voice-guided navigation and audio assistance, say "Blind Accessibility". 
+        You can also say "Skip" to browse the website manually.
+        
+        Here are some quick navigation tips: You can always say "help" to hear available commands, 
+        "go to home" for the main page, "go to tools" for AI accessibility tools, 
+        or "go to chat" to talk with our AI assistant. 
+        
+        What would you like to do today?`;
       
       const utterance = new SpeechSynthesisUtterance(welcomeText);
       utterance.rate = 0.8;
@@ -217,6 +231,11 @@ const VoiceGateway: React.FC<VoiceGatewayProps> = ({ onPreferenceSet }) => {
     }
     
     handlePreferenceSelection('skip');
+  };
+
+  const handleDontShowAgain = () => {
+    localStorage.setItem('linK_dontShowWelcome', 'true');
+    handleClose();
   };
 
   return (
@@ -367,7 +386,7 @@ const VoiceGateway: React.FC<VoiceGatewayProps> = ({ onPreferenceSet }) => {
           )}
 
           {/* Close Button */}
-          <div className="text-center pt-4">
+          <div className="text-center pt-4 space-y-2">
             <Button
               variant="text"
               onClick={handleClose}
@@ -375,6 +394,14 @@ const VoiceGateway: React.FC<VoiceGatewayProps> = ({ onPreferenceSet }) => {
               startIcon={<XMarkIcon className="h-4 w-4" />}
             >
               Skip and browse manually
+            </Button>
+            <br />
+            <Button
+              variant="text"
+              onClick={handleDontShowAgain}
+              className="text-xs text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            >
+              Don't show this welcome again
             </Button>
           </div>
         </div>

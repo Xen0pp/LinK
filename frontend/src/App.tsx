@@ -12,6 +12,10 @@ import Footer from './components/Footer';
 import SkipLink from './components/SkipLink';
 import VoiceGateway from './components/VoiceGateway';
 import UserProfile from './components/auth/UserProfile';
+import GlobalVoiceIndicator from './components/GlobalVoiceIndicator';
+
+// Contexts
+import { VoiceControlProvider } from './contexts/VoiceControlContext';
 
 // Pages
 import Home from './pages/Home';
@@ -30,6 +34,7 @@ const AccessibilityWelcome = React.lazy(() => import('./components/Accessibility
 
 function App() {
   const [accessibilityMode, setAccessibilityMode] = useState<'deaf' | 'blind' | null>(null);
+  const [helpCooldown, setHelpCooldown] = useState(false);
   
   // Safely use accessibility hook with error boundary
   try {
@@ -69,26 +74,73 @@ function App() {
     }
   };
 
+  const triggerHelp = () => {
+    if (helpCooldown) return;
+    
+    const helpText = `LinK Navigation Help: 
+      You can say "go to home" for the main page, 
+      "go to tools" for AI accessibility tools, 
+      "go to chat" for our AI assistant, 
+      "deaf learning" for sign language section, 
+      "blind accessibility" for voice-guided features, 
+      or "profile" for your account settings. 
+      You can also use the visual navigation menu at the top of the page.
+      Press F1 anytime to repeat this help message.`;
+    
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(helpText);
+      utterance.rate = 0.8;
+      utterance.volume = 0.8;
+      speechSynthesis.speak(utterance);
+    }
+    
+    // Set cooldown to prevent spam
+    setHelpCooldown(true);
+    setTimeout(() => setHelpCooldown(false), 3000);
+  };
+
+  // Add global keyboard shortcut for help
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'F1') {
+        event.preventDefault();
+        triggerHelp();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-        <SkipLink />
-        <VoiceGateway onPreferenceSet={handlePreferenceSet} />
-        
-        {/* Lazy load AccessibilityWelcome with fallback */}
-        <Suspense fallback={<div></div>}>
-          <AccessibilityWelcome onModeSelect={handleModeSelect} />
-        </Suspense>
-        
-        {/* Voice Status Indicator for Blind Mode */}
-        {accessibilityMode === 'blind' && (
-          <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
-              <span className="text-sm font-medium">Voice Ready</span>
-            </div>
-          </div>
-        )}
+      <VoiceControlProvider>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          <SkipLink />
+          <VoiceGateway onPreferenceSet={handlePreferenceSet} />
+          
+          {/* Lazy load AccessibilityWelcome with fallback */}
+          <Suspense fallback={<div></div>}>
+            <AccessibilityWelcome onModeSelect={handleModeSelect} />
+          </Suspense>
+          
+          {/* Global Voice Status Indicator */}
+          <GlobalVoiceIndicator />
+
+        {/* Help Button - Always visible for navigation assistance */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            onClick={triggerHelp}
+            className={`${helpCooldown ? 'opacity-50 cursor-not-allowed' : 'hover:from-purple-700 hover:to-blue-700 transform hover:scale-105'} bg-gradient-to-r from-purple-600 to-blue-600 text-white p-3 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200`}
+            aria-label="Get navigation help and instructions (F1)"
+            title="Click for navigation help (or press F1)"
+            disabled={helpCooldown}
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </div>
         
         <div className="flex flex-col min-h-screen">
           <Navbar />
@@ -147,7 +199,8 @@ function App() {
             top: 80,
           }}
         />
-      </div>
+        </div>
+      </VoiceControlProvider>
     </Router>
   );
 }
